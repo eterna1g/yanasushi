@@ -1,0 +1,1281 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>YANASUSHI</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
+<style>
+/* ==========================================================
+   YANASUSHI — сайт доставки суши / сайт доставки суші
+   Раскладка: одна страница. Сверху липкая шапка, ниже
+   «Главная» → «Суши» → «Сеты» → «Акции» → «Контакты».
+   Корзина выезжает справа. Языки: RU и UA.
+   ----------------------------------------------------------
+   Все цвета и шрифты собраны в переменных ниже (:root).
+   Хотите другой цвет кнопок? Меняйте --accent.
+   ========================================================== */
+
+:root {
+  /* шрифты: заголовки и основной текст (оба поддерживают кириллицу) */
+  --font-display: 'Unbounded', 'Arial Black', system-ui, sans-serif;
+  --font-body: 'Onest', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  /* светлая тема */
+  --bg: #F1F4EE;
+  --surface: #FFFFFF;
+  --surface-2: #E6ECE2;
+  --ink: #16231E;
+  --muted: #56655D;
+  --line: #D3DCCF;
+  --accent: #CF4128;
+  --on-accent: #FFFFFF;
+
+  /* цвета для рисунков суши */
+  --nori: #1B2B24;
+  --rice: #FAF8F1;
+  --c-salmon: #F07A5A;
+  --c-tuna: #B8384D;
+  --c-eel: #7B4B2E;
+  --c-shrimp: #F2A65A;
+  --c-cucumber: #7BA428;
+  --c-tobiko: #E8832A;
+  --c-miso: #C99A5B;
+  --c-yuzu: #E4C34A;
+  --c-soy: #4A2E22;
+  --c-ginger: #F2A9A3;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0E1713;
+    --surface: #16231E;
+    --surface-2: #1D2D26;
+    --ink: #E9F0EA;
+    --muted: #9DB0A5;
+    --line: #2A3C34;
+    --accent: #F0735B;
+    --on-accent: #1A0E0A;
+    --nori: #30473C;
+    --rice: #ECE9DD;
+    --c-tuna: #D4566B;
+    --c-eel: #A8714C;
+    --c-cucumber: #8DB63A;
+    --c-soy: #7A5240;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0E1713;
+  --surface: #16231E;
+  --surface-2: #1D2D26;
+  --ink: #E9F0EA;
+  --muted: #9DB0A5;
+  --line: #2A3C34;
+  --accent: #F0735B;
+  --on-accent: #1A0E0A;
+  --nori: #30473C;
+  --rice: #ECE9DD;
+  --c-tuna: #D4566B;
+  --c-eel: #A8714C;
+  --c-cucumber: #8DB63A;
+  --c-soy: #7A5240;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.55;
+  background: var(--bg);
+  color: var(--ink);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+/* закрашиваем полосу над липкой шапкой на телефонах */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0 0 auto;
+  height: env(safe-area-inset-top, 0px);
+  background: var(--bg);
+  z-index: 60;
+}
+.wrap { max-width: 1120px; margin-inline: auto; }
+h1, h2, h3, p, ol, ul { margin: 0; }
+ol, ul { padding: 0; list-style: none; }
+button, input, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+/* ---------- кнопки ---------- */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 12px 22px; border-radius: 999px; border: 1.5px solid transparent;
+  font-weight: 600; font-size: 1rem; cursor: pointer; text-decoration: none;
+  transition: transform .15s ease, background .15s ease, border-color .15s ease;
+}
+.btn:active { transform: scale(.97); }
+.btn-primary { background: var(--accent); color: var(--on-accent); }
+.btn-primary:hover { filter: brightness(1.08); }
+.btn-ghost { border-color: var(--line); color: var(--ink); background: transparent; }
+.btn-ghost:hover { border-color: var(--ink); }
+.btn-sm { padding: 8px 16px; font-size: .92rem; }
+.btn-block { width: 100%; }
+
+/* ---------- шапка ---------- */
+.site-header {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 50;
+  background: var(--bg);
+}
+.header-inner {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+  gap: 6px 20px; padding-block: 12px; border-bottom: 1px solid var(--line);
+}
+.brand {
+  display: inline-flex; align-items: center; gap: 10px;
+  font-family: var(--font-display); font-weight: 700; font-size: 1.05rem;
+  letter-spacing: .03em; color: inherit; text-decoration: none;
+}
+.brand svg { width: 30px; height: 30px; }
+.nav { display: flex; gap: 18px; order: 3; flex-basis: 100%; min-width: 0; overflow-x: auto; }
+.nav a { white-space: nowrap; }
+.nav a {
+  color: var(--muted); text-decoration: none; font-weight: 500; padding: 4px 0;
+  border-bottom: 2px solid transparent;
+}
+.nav a:hover { color: var(--ink); border-bottom-color: var(--accent); }
+@media (min-width: 720px) { .nav { order: 0; flex-basis: auto; gap: 22px; } }
+.header-actions { display: flex; align-items: center; gap: 10px; }
+.lang { display: inline-flex; border: 1.5px solid var(--line); border-radius: 999px; padding: 2px; }
+.lang button {
+  border: 0; background: transparent; color: var(--muted); border-radius: 999px;
+  padding: 6px 11px; font-weight: 600; font-size: .85rem; cursor: pointer;
+}
+.lang button:hover { color: var(--ink); }
+.lang button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+.cart-btn {
+  display: inline-flex; align-items: center; gap: 10px; border: 0; cursor: pointer;
+  background: var(--ink); color: var(--bg); border-radius: 999px; padding: 9px 12px 9px 18px;
+  font-weight: 600;
+}
+.cart-count {
+  display: grid; place-items: center; min-width: 24px; height: 24px; padding-inline: 7px;
+  border-radius: 999px; background: var(--accent); color: var(--on-accent);
+  font-size: .82rem; font-variant-numeric: tabular-nums;
+}
+@media (max-width: 480px) {
+  .brand { font-size: .9rem; gap: 8px; }
+  .brand svg { width: 26px; height: 26px; }
+  .header-actions { gap: 8px; }
+  .lang button { padding: 5px 9px; }
+  .cart-btn { padding: 8px 10px 8px 14px; gap: 8px; }
+}
+
+/* ---------- секции ---------- */
+section { scroll-margin-top: 120px; }
+.section { padding-block: clamp(40px, 7vw, 88px); }
+.kicker {
+  font-size: .78rem; letter-spacing: .16em; text-transform: uppercase;
+  color: var(--muted); font-weight: 600;
+}
+h2.title {
+  font-family: var(--font-display); font-weight: 500; text-wrap: balance;
+  font-size: clamp(1.5rem, 3.6vw, 2.2rem); line-height: 1.15; margin-top: 10px;
+}
+.lead { color: var(--muted); max-width: 52ch; margin-top: 12px; }
+
+/* ---------- главная ---------- */
+.hero {
+  display: grid; grid-template-columns: 1.1fr .9fr; gap: 32px 48px; align-items: center;
+  padding-block: clamp(28px, 6vw, 72px);
+}
+@media (max-width: 760px) { .hero { grid-template-columns: 1fr; } }
+.hero h1 {
+  font-family: var(--font-display); font-weight: 700; text-wrap: balance;
+  font-size: clamp(1.9rem, 5.4vw, 3.3rem); line-height: 1.1; margin: 14px 0 18px;
+}
+.hero p.lead { max-width: 46ch; margin-top: 0; font-size: 1.05rem; }
+.hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
+.facts { display: flex; flex-wrap: wrap; gap: 14px 32px; margin-top: 36px; }
+.facts div { min-width: 0; }
+.facts strong {
+  display: block; font-family: var(--font-display); font-weight: 500; font-size: 1.15rem;
+  font-variant-numeric: tabular-nums;
+}
+.facts span { font-size: .88rem; color: var(--muted); }
+.hero-art { max-width: 420px; width: 100%; margin-inline: auto; }
+.hero-art svg { width: 100%; height: auto; display: block; }
+
+/* ---------- как заказать ---------- */
+.steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; margin-top: 32px; }
+@media (max-width: 760px) { .steps { grid-template-columns: 1fr; gap: 20px; } }
+.steps li { border-top: 2px solid var(--ink); padding-top: 14px; min-width: 0; }
+.steps .num { font-family: var(--font-display); color: var(--accent); font-size: 1.3rem; font-weight: 700; }
+.steps h3 { font-size: 1.08rem; font-weight: 600; margin: 6px 0; }
+.steps p { color: var(--muted); font-size: .95rem; }
+
+/* ---------- меню ---------- */
+.menu-block { margin-top: 28px; }
+.group-title { font-size: 1.05rem; font-weight: 600; margin-bottom: 14px; }
+.badge {
+  position: absolute; top: 10px; left: 10px; background: var(--ink); color: var(--bg);
+  border-radius: 999px; font-size: .8rem; font-weight: 600; padding: 2px 10px;
+  font-variant-numeric: tabular-nums;
+}
+.grid {
+  display: grid; gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr));
+}
+.card {
+  display: flex; flex-direction: column; min-width: 0; overflow: hidden;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 16px;
+  transition: border-color .15s ease;
+}
+.card:hover { border-color: var(--ink); }
+.card-art { position: relative; height: 140px; display: grid; place-items: center; background: var(--surface-2); }
+.card-art svg { width: 96px; height: 96px; }
+.chip {
+  position: absolute; top: 10px; right: 10px; background: var(--accent); color: var(--on-accent);
+  border-radius: 999px; font-size: .8rem; font-weight: 600; padding: 2px 10px;
+  font-variant-numeric: tabular-nums;
+}
+.card-body { display: flex; flex-direction: column; gap: 6px; padding: 16px; flex: 1; }
+.card h3 { font-size: 1.05rem; font-weight: 600; line-height: 1.3; }
+.card p { color: var(--muted); font-size: .92rem; }
+.meta { font-size: .85rem; color: var(--muted); }
+.card-foot { margin-top: auto; padding-top: 12px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.price { display: flex; flex-direction: column; line-height: 1.25; font-family: var(--font-display); font-weight: 500; font-size: 1.05rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.price .old { font-family: var(--font-body); font-weight: 400; font-size: .82rem; color: var(--muted); }
+
+/* ---------- контакты ---------- */
+.contacts-grid { display: grid; gap: 28px; margin-top: 32px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr)); }
+.contacts-grid > div { border-top: 1px solid var(--line); padding-top: 16px; min-width: 0; }
+.label { font-size: .78rem; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.value { font-size: 1.2rem; font-weight: 500; margin-top: 6px; overflow-wrap: anywhere; }
+.note { color: var(--muted); font-size: .92rem; margin-top: 4px; }
+.delivery-box {
+  margin-top: 36px; padding: 22px; border-radius: 16px; background: var(--surface-2);
+  display: grid; gap: 18px 32px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 170px), 1fr));
+}
+.delivery-box strong { display: block; font-family: var(--font-display); font-weight: 500; font-size: 1.1rem; font-variant-numeric: tabular-nums; }
+.delivery-box span { font-size: .88rem; color: var(--muted); }
+
+#delivery { scroll-margin-top: 120px; }
+
+/* ---------- подвал ---------- */
+.site-footer { border-top: 1px solid var(--line); padding-block: 36px 28px; color: var(--muted); font-size: .95rem; margin-top: 24px; }
+.footer-grid { display: grid; gap: 28px 40px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); }
+.footer-grid > div, .footer-grid > nav { min-width: 0; }
+.footer-brand { font-family: var(--font-display); font-weight: 700; letter-spacing: .03em; color: var(--ink); margin-bottom: 8px; }
+.footer-grid p { margin: 0 0 4px; }
+.footer-phone { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+.footer-title { font-size: .78rem; letter-spacing: .14em; text-transform: uppercase; font-weight: 600; margin: 0 0 12px; }
+.footer-grid ul { display: grid; gap: 8px; justify-items: start; }
+.footer-grid a { color: var(--ink); text-decoration: none; border-bottom: 1px solid var(--line); }
+.footer-grid a:hover { border-bottom-color: var(--accent); }
+.copyright { margin-top: 32px; padding-top: 18px; border-top: 1px solid var(--line); font-size: .88rem; }
+
+/* ---------- корзина (выезжает справа) ---------- */
+.overlay {
+  position: fixed; inset: 0; z-index: 70; background: rgba(8, 14, 11, .55);
+  opacity: 0; visibility: hidden; transition: opacity .25s ease, visibility .25s;
+}
+.overlay.open { opacity: 1; visibility: visible; }
+.drawer {
+  position: fixed; top: 0; right: 0; bottom: 0; z-index: 80; width: min(440px, 100%);
+  display: flex; flex-direction: column; background: var(--surface);
+  border-left: 1px solid var(--line);
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+  transform: translateX(100%); visibility: hidden;
+  transition: transform .3s ease, visibility .3s;
+}
+.drawer.open { transform: none; visibility: visible; }
+.drawer-head { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid var(--line); }
+.drawer-head h2 { font-family: var(--font-display); font-weight: 500; font-size: 1.1rem; }
+.drawer-head h2:focus { outline: none; }
+.icon-btn { width: 38px; height: 38px; border-radius: 50%; border: 1.5px solid var(--line); background: transparent; cursor: pointer; font-size: 1.2rem; line-height: 1; }
+.icon-btn:hover { border-color: var(--ink); }
+.drawer-body { flex: 1; overflow-y: auto; padding: 6px 20px 20px; }
+.drawer-foot { padding: 16px 20px; border-top: 1px solid var(--line); display: grid; gap: 8px; }
+.drawer-foot:empty { display: none; }
+.empty { text-align: center; padding: 48px 8px; color: var(--muted); display: grid; gap: 16px; justify-items: center; }
+
+.line { display: grid; grid-template-columns: 1fr auto; gap: 8px 12px; padding: 14px 0; border-bottom: 1px solid var(--line); align-items: center; }
+.line-name { font-weight: 600; min-width: 0; overflow-wrap: anywhere; }
+.line-sub { color: var(--muted); font-size: .88rem; font-variant-numeric: tabular-nums; }
+.line-total { font-weight: 600; font-variant-numeric: tabular-nums; text-align: right; }
+.line-controls { display: flex; align-items: center; gap: 10px; }
+.stepper { display: inline-flex; align-items: center; border: 1.5px solid var(--line); border-radius: 999px; }
+.stepper button { width: 34px; height: 34px; border: 0; border-radius: 50%; background: transparent; cursor: pointer; font-size: 1.1rem; }
+.stepper button:hover { background: var(--surface-2); }
+.stepper span { min-width: 26px; text-align: center; font-weight: 600; font-variant-numeric: tabular-nums; }
+.link-btn { border: 0; background: none; color: var(--muted); cursor: pointer; text-decoration: underline; font-size: .88rem; padding: 4px; }
+.link-btn:hover { color: var(--accent); }
+.sum-row { display: flex; justify-content: space-between; font-variant-numeric: tabular-nums; }
+.sum-total { font-weight: 700; font-size: 1.12rem; padding-top: 4px; }
+.free-note { font-size: .88rem; color: var(--muted); }
+.bar { height: 6px; background: var(--surface-2); border-radius: 99px; overflow: hidden; margin-bottom: 6px; }
+.bar i { display: block; height: 100%; background: var(--c-cucumber); width: var(--p, 0%); transition: width .3s ease; }
+
+.form { display: grid; gap: 14px; padding-top: 14px; }
+.field { display: grid; gap: 5px; }
+.field label, .field legend { font-size: .88rem; font-weight: 600; }
+.field input[type="text"], .field input[type="tel"], .field textarea {
+  width: 100%; padding: 11px 12px; border-radius: 10px; font-size: 1rem;
+  border: 1.5px solid var(--line); background: var(--bg);
+}
+.field textarea { resize: vertical; min-height: 70px; }
+.field input:focus-visible, .field textarea:focus-visible { outline: 3px solid var(--accent); outline-offset: 1px; }
+fieldset.field { border: 0; padding: 0; margin: 0; min-width: 0; }
+.radio { display: flex; align-items: center; gap: 10px; padding: 6px 0; cursor: pointer; }
+.radio input { accent-color: var(--accent); width: 18px; height: 18px; }
+.demo-note { font-size: .86rem; color: var(--muted); background: var(--surface-2); border-radius: 10px; padding: 10px 12px; }
+.done { display: grid; gap: 14px; padding-top: 24px; }
+.done .big { font-family: var(--font-display); font-size: 1.4rem; line-height: 1.2; }
+.order-text {
+  width: 100%; min-height: 180px; resize: vertical; padding: 10px 12px; border-radius: 10px;
+  border: 1.5px solid var(--line); background: var(--bg); color: var(--ink);
+  font: inherit; font-size: .9rem; line-height: 1.5;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { transition: none !important; }
+}
+</style>
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="brand" href="#home" data-i18n-aria="brandAria">
+      <svg viewBox="0 0 100 100" aria-hidden="true">
+        <circle cx="50" cy="50" r="46" style="fill:var(--nori)"/>
+        <circle cx="50" cy="50" r="37" style="fill:var(--rice)"/>
+        <circle cx="50" cy="50" r="20" style="fill:var(--c-salmon)"/>
+        <circle cx="50" cy="50" r="7" style="fill:var(--c-cucumber)"/>
+      </svg>
+      YANASUSHI
+    </a>
+    <nav class="nav" data-i18n-aria="navAria">
+      <a href="#home" data-i18n="navHome">Главная</a>
+      <a href="#sushi" data-i18n="navSushi">Суши</a>
+      <a href="#sets" data-i18n="navSets">Сеты</a>
+      <a href="#promo" data-i18n="navPromo">Акции</a>
+      <a href="#contacts" data-i18n="navContacts">Контакты</a>
+    </nav>
+    <div class="header-actions">
+      <!-- переключатель языка -->
+      <div class="lang" role="group" data-i18n-aria="langAria">
+        <button type="button" data-act="lang" data-lang="ru" aria-pressed="true">RU</button>
+        <button type="button" data-act="lang" data-lang="uk" aria-pressed="false">UA</button>
+      </div>
+      <button class="cart-btn" type="button" data-act="open-cart" data-i18n-aria="cartOpenAria">
+        <span data-i18n="cart">Корзина</span> <span class="cart-count" id="cart-count">0</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- ===== ГЛАВНАЯ ===== -->
+  <section id="home" class="hero">
+    <div>
+      <p class="kicker" data-i18n="heroKicker">Доставка суши</p>
+      <h1 data-i18n="heroTitle">Свежие суши с доставкой до двери</h1>
+      <p class="lead" data-i18n="heroLead">Роллы, нигири и сеты.</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="#sushi" data-i18n="heroBtnSushi">Выбрать суши</a>
+        <a class="btn btn-ghost" href="#promo" data-i18n="heroBtnPromo">Акции</a>
+      </div>
+      <div class="facts">
+        <div><strong data-fill="time">45–60 мин</strong><span data-i18n="factTime">среднее время доставки</span></div>
+        <div><strong data-fill="freeFrom">800</strong><span data-i18n="factFree">сумма заказа для бесплатной доставки</span></div>
+        <div><strong data-fill="hours">11:00–23:00</strong><span data-i18n="factHours">работаем каждый день</span></div>
+      </div>
+    </div>
+
+    <!-- большая картинка: разрез ролла, нарисована в SVG -->
+    <div class="hero-art">
+      <svg viewBox="0 0 400 340" role="img" data-i18n-aria="heroArtAria">
+        <circle cx="240" cy="170" r="130" style="fill:var(--nori);stroke:var(--bg);stroke-width:4"/>
+        <circle cx="240" cy="170" r="108" style="fill:var(--rice)"/>
+        <circle cx="240" cy="170" r="62" style="fill:var(--c-salmon)"/>
+        <circle cx="240" cy="170" r="40" style="fill:var(--c-tobiko);opacity:.55"/>
+        <circle cx="240" cy="170" r="22" style="fill:var(--c-cucumber)"/>
+        <circle cx="80" cy="255" r="52" style="fill:var(--rice);stroke:var(--bg);stroke-width:4"/>
+        <circle cx="80" cy="255" r="32" style="fill:var(--nori)"/>
+        <circle cx="80" cy="255" r="19" style="fill:var(--c-tuna)"/>
+        <circle cx="100" cy="85" r="34" style="fill:var(--nori);stroke:var(--bg);stroke-width:4"/>
+        <circle cx="100" cy="85" r="27" style="fill:var(--rice)"/>
+        <circle cx="100" cy="85" r="14" style="fill:var(--c-shrimp)"/>
+      </svg>
+    </div>
+  </section>
+
+  <!-- ===== КАК ЗАКАЗАТЬ ===== -->
+  <section id="how" class="section" style="padding-top:8px">
+    <p class="kicker" data-i18n="howKicker">Как заказать</p>
+    <h2 class="title" data-i18n="howTitle">Три шага до обеда</h2>
+    <ol class="steps">
+      <li>
+        <span class="num">1</span>
+        <h3 data-i18n="step1h">Выберите блюда</h3>
+        <p data-i18n="step1p"></p>
+      </li>
+      <li>
+        <span class="num">2</span>
+        <h3 data-i18n="step2h">Оформите заказ</h3>
+        <p data-i18n="step2p"></p>
+      </li>
+      <li>
+        <span class="num">3</span>
+        <h3 data-i18n="step3h">Встречайте курьера</h3>
+        <p data-i18n="step3p"></p>
+      </li>
+    </ol>
+  </section>
+
+  <!-- ===== СУШИ ===== -->
+  <section id="sushi" class="section">
+    <p class="kicker" data-i18n="sushiKicker">Суши</p>
+    <h2 class="title" data-i18n="sushiTitle">Роллы и нигири по одному</h2>
+    <p class="lead" data-i18n="sushiLead"></p>
+    <div id="grid-sushi"></div>
+  </section>
+
+  <!-- ===== СЕТЫ ===== -->
+  <section id="sets" class="section">
+    <p class="kicker" data-i18n="setsKicker">Сеты</p>
+    <h2 class="title" data-i18n="setsTitle">Наборы для компании</h2>
+    <p class="lead" data-i18n="setsLead"></p>
+    <div id="grid-sets"></div>
+  </section>
+
+  <!-- ===== АКЦИИ ===== -->
+  <section id="promo" class="section">
+    <p class="kicker" data-i18n="promoKicker">Акции</p>
+    <h2 class="title" data-i18n="promoTitle">Роллы и сеты со скидкой</h2>
+    <p class="lead" data-i18n="promoLead"></p>
+    <div id="grid-promo"></div>
+  </section>
+
+  <!-- ===== КОНТАКТЫ ===== -->
+  <section id="contacts" class="section">
+    <p class="kicker" data-i18n="contactsKicker">Контакты</p>
+    <h2 class="title" data-i18n="contactsTitle">Как с нами связаться</h2>
+    <p class="lead" data-i18n="contactsLead"></p>
+
+    <!-- Замените эти данные на свои -->
+    <div class="contacts-grid">
+      <div>
+        <div class="label" data-i18n="phoneLabel">Телефон</div>
+        <div class="value" data-fill="phone">+380 00 000 00 00</div>
+        <p class="note" data-i18n="phoneNote"></p>
+      </div>
+      <div>
+        <div class="label" data-i18n="addrLabel">Адрес кухни</div>
+        <div class="value" data-i18n="addrValue">ул. Примерная, 1</div>
+        <p class="note" data-i18n="addrNote"></p>
+      </div>
+      <div>
+        <div class="label" data-i18n="mailLabel">Почта</div>
+        <div class="value">hello@yanasushi.example</div>
+        <p class="note" data-i18n="mailNote"></p>
+      </div>
+    </div>
+
+    <div class="delivery-box" id="delivery">
+      <div><strong data-fill="time">45–60 мин</strong><span data-i18n="delTime">время доставки</span></div>
+      <div><strong data-fill="fee">60</strong><span data-i18n="delFee">стоимость доставки</span></div>
+      <div><strong data-fill="freeFrom">800</strong><span data-i18n="delFree">бесплатно при заказе от этой суммы</span></div>
+      <div><strong data-i18n="delLastVal">до 22:30</strong><span data-i18n="delLast">последний приём заказов</span></div>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="footer-brand">YANASUSHI</div>
+        <p data-i18n="footerCity">Черкассы</p>
+        <p data-i18n="addrValue">ул. Примерная, 1</p>
+        <p class="footer-phone" data-fill="phone">+380 00 000 00 00</p>
+        <p data-i18n="phoneNote"></p>
+        <p data-i18n="footerOrderHours"></p>
+      </div>
+      <nav aria-labelledby="footer-info-title">
+        <h3 class="footer-title" id="footer-info-title" data-i18n="footerInfo">Информация</h3>
+        <ul>
+          <li><a href="#home" data-i18n="navHome">Главная</a></li>
+          <li><a href="#promo" data-i18n="navPromo">Акции</a></li>
+          <li><a href="#delivery" data-i18n="footDelivery">Доставка и оплата</a></li>
+          <li><a href="#contacts" data-i18n="navContacts">Контакты</a></li>
+        </ul>
+      </nav>
+      <div>
+        <h3 class="footer-title" data-i18n="footerSocial">Мы в соцсетях</h3>
+        <!-- Замените ссылки на свои страницы в соцсетях -->
+        <ul>
+          <li><a href="https://www.instagram.com/" target="_blank" rel="noopener">Instagram</a></li>
+          <li><a href="https://www.facebook.com/" target="_blank" rel="noopener">Facebook</a></li>
+          <li><a href="https://telegram.org/" target="_blank" rel="noopener">Telegram</a></li>
+        </ul>
+      </div>
+    </div>
+    <p class="copyright" data-i18n="footer">© 2026 YANASUSHI</p>
+  </div>
+</footer>
+
+<!-- затемнение и панель корзины -->
+<div class="overlay" id="overlay" data-act="close-cart"></div>
+<aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-labelledby="drawer-title" aria-hidden="true">
+  <div class="drawer-head">
+    <h2 id="drawer-title" tabindex="-1">Корзина</h2>
+    <button class="icon-btn" type="button" data-act="close-cart" data-i18n-aria="closeAria">×</button>
+  </div>
+  <div class="drawer-body" id="drawer-body"></div>
+  <div class="drawer-foot" id="drawer-foot"></div>
+</aside>
+
+<script>
+/* ==========================================================
+   НАСТРОЙКИ — меняйте здесь
+   ========================================================== */
+const CURRENCY = '₴';          // знак валюты
+const DELIVERY_FEE = 60;       // стоимость доставки
+const FREE_FROM = 800;         // от какой суммы доставка бесплатная
+const WORK_HOURS = '11:00–23:00';       // часы работы кухни
+const ORDER_HOURS = '11:00–22:30';      // часы приёма заказов на сайте
+const PHONE = '+380 00 000 00 00';      // телефон (в контактах и внизу страницы)
+
+/* Telegram, куда клиент отправит заказ.
+   Впишите имя вашего аккаунта БЕЗ значка @, например: 'yanasushi_orders'.
+   Пока поле пустое, Telegram предложит клиенту выбрать получателя сам. */
+const TELEGRAM_USERNAME = ''; // больше не используется для автоматической отправки
+// URL опубликованного Cloudflare Worker. После публикации вставьте сюда URL Worker.
+const ORDER_API_URL = 'https://YOUR-WORKER-NAME.YOUR-SUBDOMAIN.workers.dev';
+
+/* ==========================================================
+   ТЕКСТЫ САЙТА НА ДВУХ ЯЗЫКАХ
+   ru — русский, uk — украинский (на кнопке «UA»).
+   Чтобы поменять надпись, найдите её по ключу и измените
+   в обоих языках. В {фигурных скобках} подставляются значения.
+   ========================================================== */
+const I18N = {
+  ru: {
+    brandAria: 'YANASUSHI, на главную', navAria: 'Разделы сайта', langAria: 'Язык',
+    navHome: 'Главная', navSushi: 'Суши', navSets: 'Сеты', navPromo: 'Акции', navContacts: 'Контакты',
+    cart: 'Корзина', cartOpenAria: 'Открыть корзину', closeAria: 'Закрыть корзину',
+    time: '45–60 мин',
+    heroKicker: 'Доставка суши',
+    heroTitle: 'Свежие суши с доставкой до двери',
+    heroLead: 'Роллы, нигири и сеты. Рис варим и роллы собираем после того, как вы оформили заказ.',
+    heroBtnSushi: 'Выбрать суши', heroBtnPromo: 'Акции',
+    heroArtAria: 'Роллы с лососем и огурцом',
+    factTime: 'среднее время доставки', factFree: 'сумма заказа для бесплатной доставки', factHours: 'работаем каждый день',
+    howKicker: 'Как заказать', howTitle: 'Три шага до обеда',
+    step1h: 'Выберите блюда',
+    step1p: 'Откройте «Суши», «Сеты» или «Акции» и добавьте нужное в корзину. Корзина сохраняется, даже если закрыть страницу.',
+    step2h: 'Оформите заказ',
+    step2p: 'Укажите имя, телефон и адрес. Оплата курьеру наличными или картой.',
+    step3h: 'Встречайте курьера',
+    step3p: 'Готовим после заказа и привозим свежим, обычно за {time}.',
+    sushiKicker: 'Суши', sushiTitle: 'Роллы и нигири по одному',
+    sushiLead: 'Собирайте заказ сами: берите по порции любимых роллов и нигири.',
+    setsKicker: 'Сеты', setsTitle: 'Наборы для компании',
+    setsLead: 'Готовые наборы: роллы и нигири подобраны так, чтобы хватило на всех.',
+    promoKicker: 'Акции', promoTitle: 'Роллы и сеты со скидкой',
+    promoLead: 'Цена в карточке уже со скидкой. Старая цена зачёркнута.',
+    groupRolls: 'Роллы', groupNigiri: 'Нигири', groupExtra: 'Напитки и добавки', groupSets: 'Сеты',
+    contactsKicker: 'Контакты', contactsTitle: 'Как с нами связаться',
+    contactsLead: 'Позвоните, если нужно изменить заказ или уточнить состав блюда.',
+    phoneLabel: 'Телефон', phoneNote: 'Ежедневно {hours}',
+    addrLabel: 'Адрес кухни', addrValue: 'ул. Примерная, 1', addrNote: 'Самовывоз можно забрать до 22:30',
+    mailLabel: 'Почта', mailNote: 'Отвечаем в течение рабочего дня',
+    delTime: 'время доставки', delFee: 'стоимость доставки', delFree: 'бесплатно при заказе от этой суммы',
+    delLastVal: 'до 22:30', delLast: 'последний приём заказов',
+    footer: '© 2026 YANASUSHI · Суши с доставкой',
+    footerCity: 'Черкассы', footerOrderHours: 'Заказы на сайте: ежедневно {orderHours}',
+    footerInfo: 'Информация', footerSocial: 'Мы в соцсетях', footDelivery: 'Доставка и оплата',
+    // корзина
+    cartTitle: 'Корзина', checkoutTitle: 'Оформление', doneTitle: 'Отправьте заказ',
+    emptyText: 'В корзине пока пусто.', emptyBtn: 'Выбрать блюда',
+    addBtn: 'В корзину', addAria: 'Добавить в корзину: {name}',
+    decAria: 'Убрать одну порцию: {name}', incAria: 'Добавить ещё одну порцию: {name}',
+    remove: 'Удалить',
+    sumItems: 'Блюда', sumDelivery: 'Доставка', free: 'бесплатно', sumTotal: 'Итого',
+    freeLeft: 'Добавьте ещё на {sum}, и доставка будет бесплатной.', freeDone: 'Доставка бесплатная.',
+    checkoutBtn: 'Оформить заказ',
+    back: '← Вернуться к корзине',
+    fName: 'Имя', fNamePh: 'Как к вам обращаться',
+    fPhone: 'Телефон',
+    fAddr: 'Адрес доставки', fAddrPh: 'Улица, дом, квартира',
+    fPay: 'Оплата курьеру', payCash: 'Наличными', payCard: 'Картой',
+    fComment: 'Комментарий (необязательно)', fCommentPh: 'Домофон, этаж, пожелания',
+    confirmBtn: 'Далее: отправить в Telegram',
+    thanks: 'Заказ собран, {name}!',
+    doneText: 'Заказ №{num} на сумму {sum} готов. Осталось отправить его нам в Telegram.',
+    payCashLower: 'наличными', payCardLower: 'картой',
+    tgNote: 'Заказ пока не отправлен. Нажмите «Открыть Telegram»: откроется чат с готовым текстом, останется нажать «Отправить». Если Telegram не открылся, скопируйте текст и отправьте нам сами.',
+    tgBtn: 'Открыть Telegram', copyBtn: 'Скопировать текст', copied: 'Скопировано',
+    finishBtn: 'Я отправил(а) заказ',
+    orderTitle: 'Заказ №{num}', oComment: 'Комментарий',
+  },
+  uk: {
+    brandAria: 'YANASUSHI, на головну', navAria: 'Розділи сайту', langAria: 'Мова',
+    navHome: 'Головна', navSushi: 'Суші', navSets: 'Сети', navPromo: 'Акції', navContacts: 'Контакти',
+    cart: 'Кошик', cartOpenAria: 'Відкрити кошик', closeAria: 'Закрити кошик',
+    time: '45–60 хв',
+    heroKicker: 'Доставка суші',
+    heroTitle: 'Свіжі суші з доставкою до дверей',
+    heroLead: 'Роли, нігірі та сети. Рис варимо і роли збираємо після того, як ви оформили замовлення.',
+    heroBtnSushi: 'Обрати суші', heroBtnPromo: 'Акції',
+    heroArtAria: 'Роли з лососем і огірком',
+    factTime: 'середній час доставки', factFree: 'сума замовлення для безкоштовної доставки', factHours: 'працюємо щодня',
+    howKicker: 'Як замовити', howTitle: 'Три кроки до обіду',
+    step1h: 'Оберіть страви',
+    step1p: 'Відкрийте «Суші», «Сети» або «Акції» і додайте потрібне до кошика. Кошик зберігається, навіть якщо закрити сторінку.',
+    step2h: 'Оформіть замовлення',
+    step2p: 'Вкажіть ім’я, телефон і адресу. Оплата кур’єру готівкою або карткою.',
+    step3h: 'Зустрічайте кур’єра',
+    step3p: 'Готуємо після замовлення і привозимо свіжим, зазвичай за {time}.',
+    sushiKicker: 'Суші', sushiTitle: 'Роли та нігірі по одному',
+    sushiLead: 'Збирайте замовлення самі: беріть по порції улюблених ролів і нігірі.',
+    setsKicker: 'Сети', setsTitle: 'Набори для компанії',
+    setsLead: 'Готові набори: роли та нігірі підібрані так, щоб вистачило всім.',
+    promoKicker: 'Акції', promoTitle: 'Роли та сети зі знижкою',
+    promoLead: 'Ціна в картці вже зі знижкою. Стара ціна закреслена.',
+    groupRolls: 'Роли', groupNigiri: 'Нігірі', groupExtra: 'Напої та добавки', groupSets: 'Сети',
+    contactsKicker: 'Контакти', contactsTitle: 'Як з нами зв’язатися',
+    contactsLead: 'Зателефонуйте, якщо потрібно змінити замовлення або уточнити склад страви.',
+    phoneLabel: 'Телефон', phoneNote: 'Щодня {hours}',
+    addrLabel: 'Адреса кухні', addrValue: 'вул. Прикладна, 1', addrNote: 'Самовивіз можна забрати до 22:30',
+    mailLabel: 'Пошта', mailNote: 'Відповідаємо протягом робочого дня',
+    delTime: 'час доставки', delFee: 'вартість доставки', delFree: 'безкоштовно при замовленні від цієї суми',
+    delLastVal: 'до 22:30', delLast: 'останній прийом замовлень',
+    footer: '© 2026 YANASUSHI · Суші з доставкою',
+    footerCity: 'Черкаси', footerOrderHours: 'Замовлення на сайті: щодня {orderHours}',
+    footerInfo: 'Інформація', footerSocial: 'Ми в соцмережах', footDelivery: 'Доставка і оплата',
+    // кошик
+    cartTitle: 'Кошик', checkoutTitle: 'Оформлення', doneTitle: 'Надішліть замовлення',
+    emptyText: 'У кошику поки порожньо.', emptyBtn: 'Обрати страви',
+    addBtn: 'До кошика', addAria: 'Додати до кошика: {name}',
+    decAria: 'Прибрати одну порцію: {name}', incAria: 'Додати ще одну порцію: {name}',
+    remove: 'Видалити',
+    sumItems: 'Страви', sumDelivery: 'Доставка', free: 'безкоштовно', sumTotal: 'Разом',
+    freeLeft: 'Додайте ще на {sum}, і доставка буде безкоштовною.', freeDone: 'Доставка безкоштовна.',
+    checkoutBtn: 'Оформити замовлення',
+    back: '← Повернутися до кошика',
+    fName: 'Ім’я', fNamePh: 'Як до вас звертатися',
+    fPhone: 'Телефон',
+    fAddr: 'Адреса доставки', fAddrPh: 'Вулиця, будинок, квартира',
+    fPay: 'Оплата кур’єру', payCash: 'Готівкою', payCard: 'Карткою',
+    fComment: 'Коментар (необов’язково)', fCommentPh: 'Домофон, поверх, побажання',
+    confirmBtn: 'Далі: надіслати в Telegram',
+    thanks: 'Замовлення зібрано, {name}!',
+    doneText: 'Замовлення №{num} на суму {sum} готове. Залишилось надіслати його нам у Telegram.',
+    payCashLower: 'готівкою', payCardLower: 'карткою',
+    tgNote: 'Замовлення поки не надіслано. Натисніть «Відкрити Telegram»: відкриється чат із готовим текстом, залишиться натиснути «Надіслати». Якщо Telegram не відкрився, скопіюйте текст і надішліть нам самі.',
+    tgBtn: 'Відкрити Telegram', copyBtn: 'Скопіювати текст', copied: 'Скопійовано',
+    finishBtn: 'Я надіслав(ла) замовлення',
+    orderTitle: 'Замовлення №{num}', oComment: 'Коментар',
+  },
+};
+
+/* Текущий язык и функция перевода t('ключ').
+   Язык запоминается в браузере. Если не выбран, берём язык браузера. */
+const LANG_KEY = 'yanasushi-lang';
+let lang = initialLang();
+
+function initialLang() {
+  try {
+    const saved = localStorage.getItem(LANG_KEY);
+    if (saved === 'ru' || saved === 'uk') return saved;
+  } catch (e) { /* ничего страшного */ }
+  return (navigator.language || '').toLowerCase().startsWith('uk') ? 'uk' : 'ru';
+}
+
+function t(key, vars) {
+  const raw = (I18N[lang] && I18N[lang][key]) ?? I18N.ru[key] ?? key;
+  const all = Object.assign({ time: I18N[lang].time, hours: WORK_HOURS, orderHours: ORDER_HOURS }, vars || {});
+  return raw.replace(/\{(\w+)\}/g, (m, name) => (all[name] !== undefined ? all[name] : m));
+}
+
+/* ==========================================================
+   МЕНЮ — это обычный список. Чтобы добавить блюдо,
+   скопируйте любую строку и поменяйте значения.
+   Если текст разный для языков, пишем { ru: '...', uk: '...' }.
+   Если одинаковый (например, «230 г»), пишем просто строку.
+   cat   — категория (rolls, nigiri, sets, extra)
+   kind  — как рисовать: maki, uramaki, nigiri, set, bowl, cup, dish
+   color — цвет начинки для рисунка
+   oldPrice — старая цена. Если она указана, блюдо попадает в «Акции»
+              и показывается со скидкой (price — цена уже со скидкой)
+   ========================================================== */
+const MENU = [
+  { id: 'phila', cat: 'rolls', kind: 'uramaki', color: 'var(--c-salmon)', price: 256, oldPrice: 320, pcs: '8 шт', weight: '230 г',
+    name: { ru: 'Филадельфия классик', uk: 'Філадельфія класік' },
+    desc: { ru: 'Лосось, сливочный сыр, огурец, рис', uk: 'Лосось, вершковий сир, огірок, рис' } },
+  { id: 'calif', cat: 'rolls', kind: 'uramaki', color: 'var(--c-shrimp)', price: 249, oldPrice: 290, pcs: '8 шт', weight: '220 г',
+    name: { ru: 'Калифорния с креветкой', uk: 'Каліфорнія з креветкою' },
+    desc: { ru: 'Креветка, авокадо, огурец, икра тобико', uk: 'Креветка, авокадо, огірок, ікра тобіко' } },
+  { id: 'dragon', cat: 'rolls', kind: 'uramaki', color: 'var(--c-eel)', price: 289, oldPrice: 340, pcs: '8 шт', weight: '250 г',
+    name: { ru: 'Дракон', uk: 'Дракон' },
+    desc: { ru: 'Угорь, авокадо, огурец, соус унаги, кунжут', uk: 'Вугор, авокадо, огірок, соус унагі, кунжут' } },
+  { id: 'spicy', cat: 'rolls', kind: 'maki', color: 'var(--c-tobiko)', price: 280, pcs: '8 шт', weight: '210 г',
+    name: { ru: 'Спайси лосось', uk: 'Спайсі лосось' },
+    desc: { ru: 'Лосось, острый соус, огурец, нори', uk: 'Лосось, гострий соус, огірок, норі' } },
+  { id: 'tuna', cat: 'rolls', kind: 'maki', color: 'var(--c-tuna)', price: 210, pcs: '6 шт', weight: '150 г',
+    name: { ru: 'Маки с тунцом', uk: 'Макі з тунцем' },
+    desc: { ru: 'Тунец, рис, лист нори', uk: 'Тунець, рис, лист норі' } },
+  { id: 'cucumber', cat: 'rolls', kind: 'maki', color: 'var(--c-cucumber)', price: 160, pcs: '6 шт', weight: '140 г',
+    name: { ru: 'Маки с огурцом', uk: 'Макі з огірком' },
+    desc: { ru: 'Огурец, рис, лист нори. Без рыбы', uk: 'Огірок, рис, лист норі. Без риби' } },
+
+  { id: 'n-salmon', cat: 'nigiri', kind: 'nigiri', color: 'var(--c-salmon)', price: 120, pcs: '2 шт', weight: '60 г',
+    name: { ru: 'Нигири с лососем', uk: 'Нігірі з лососем' },
+    desc: { ru: 'Ломтик лосося на рисе', uk: 'Скибочка лосося на рисі' } },
+  { id: 'n-tuna', cat: 'nigiri', kind: 'nigiri', color: 'var(--c-tuna)', price: 135, pcs: '2 шт', weight: '60 г',
+    name: { ru: 'Нигири с тунцом', uk: 'Нігірі з тунцем' },
+    desc: { ru: 'Ломтик тунца на рисе', uk: 'Скибочка тунця на рисі' } },
+  { id: 'n-eel', cat: 'nigiri', kind: 'nigiri', color: 'var(--c-eel)', price: 140, pcs: '2 шт', weight: '70 г',
+    name: { ru: 'Нигири с угрём', uk: 'Нігірі з вугрем' },
+    desc: { ru: 'Копчёный угорь, соус унаги', uk: 'Копчений вугор, соус унагі' } },
+  { id: 'n-shrimp', cat: 'nigiri', kind: 'nigiri', color: 'var(--c-shrimp)', price: 110, pcs: '2 шт', weight: '55 г',
+    name: { ru: 'Нигири с креветкой', uk: 'Нігірі з креветкою' },
+    desc: { ru: 'Отварная креветка на рисе', uk: 'Варена креветка на рисі' } },
+
+  { id: 'set-start', cat: 'sets', kind: 'set', color: 'var(--c-salmon)', price: 749, oldPrice: 890, pcs: '24 шт', weight: '680 г',
+    name: { ru: 'Сет «Старт»', uk: 'Сет «Старт»' },
+    desc: { ru: 'Филадельфия, калифорния, маки с огурцом, 4 нигири', uk: 'Філадельфія, каліфорнія, макі з огірком, 4 нігірі' } },
+  { id: 'set-party', cat: 'sets', kind: 'set', color: 'var(--c-salmon)', price: 1390, oldPrice: 1650, pcs: '48 шт', weight: '1300 г',
+    name: { ru: 'Сет «Компания»', uk: 'Сет «Компанія»' },
+    desc: { ru: 'Пять видов роллов и нигири для 3–4 человек', uk: 'П’ять видів ролів і нігірі для 3–4 осіб' } },
+  { id: 'set-veggie', cat: 'sets', kind: 'set', color: 'var(--c-cucumber)', price: 720, pcs: '24 шт', weight: '600 г',
+    name: { ru: 'Сет «Вегетарианский»', uk: 'Сет «Вегетаріанський»' },
+    desc: { ru: 'Роллы с огурцом, авокадо, перцем и тофу', uk: 'Роли з огірком, авокадо, перцем і тофу' } },
+
+  { id: 'miso', cat: 'extra', kind: 'bowl', color: 'var(--c-miso)', price: 120, weight: '250 мл',
+    pcs: { ru: '1 порция', uk: '1 порція' },
+    name: { ru: 'Мисо-суп', uk: 'Місо-суп' },
+    desc: { ru: 'Тофу, водоросли вакамэ, зелёный лук', uk: 'Тофу, водорості вакаме, зелена цибуля' } },
+  { id: 'yuzu', cat: 'extra', kind: 'cup', color: 'var(--c-yuzu)', price: 85, pcs: '1 шт', weight: '330 мл',
+    name: { ru: 'Лимонад юдзу', uk: 'Лимонад юдзу' },
+    desc: { ru: 'Цитрусовый лимонад без сахара', uk: 'Цитрусовий лимонад без цукру' } },
+  { id: 'soy', cat: 'extra', kind: 'dish', color: 'var(--c-soy)', price: 15, pcs: '1 шт', weight: '30 мл',
+    name: { ru: 'Соевый соус', uk: 'Соєвий соус' },
+    desc: { ru: 'Порция к заказу', uk: 'Порція до замовлення' } },
+  { id: 'ginger', cat: 'extra', kind: 'dish', color: 'var(--c-ginger)', price: 20, pcs: '1 шт', weight: '30 г',
+    name: { ru: 'Имбирь и васаби', uk: 'Імбир і васабі' },
+    desc: { ru: 'Маринованный имбирь и васаби к заказу', uk: 'Маринований імбир і васабі до замовлення' } },
+];
+
+/* Какие блюда показывать в каждом разделе страницы.
+   title — ключ названия группы из текстов выше, test — условие отбора блюд. */
+const SECTION_GROUPS = {
+  'grid-sushi': [
+    { title: 'groupRolls', test: (m) => m.cat === 'rolls' },
+    { title: 'groupNigiri', test: (m) => m.cat === 'nigiri' },
+    { title: 'groupExtra', test: (m) => m.cat === 'extra' },
+  ],
+  'grid-sets': [
+    { title: '', test: (m) => m.cat === 'sets' },
+  ],
+  'grid-promo': [
+    { title: 'groupRolls', test: (m) => m.oldPrice && m.cat === 'rolls' },
+    { title: 'groupSets', test: (m) => m.oldPrice && m.cat === 'sets' },
+  ],
+};
+
+/* ==========================================================
+   Рисунки блюд (SVG). Цвета берутся из переменных CSS,
+   поэтому сами меняются в тёмной теме.
+   ========================================================== */
+function makiAt(cx, cy, r, fill, inverted) {
+  // inverted = рис снаружи, нори внутри (ролл «наоборот»)
+  const outer = inverted ? 'var(--rice)' : 'var(--nori)';
+  const mid = inverted ? 'var(--nori)' : 'var(--rice)';
+  const midR = inverted ? r * 0.62 : r * 0.82;
+  const fillR = inverted ? r * 0.36 : r * 0.46;
+  return `<circle cx="${cx}" cy="${cy}" r="${r}" style="fill:${outer}"/>` +
+         `<circle cx="${cx}" cy="${cy}" r="${midR}" style="fill:${mid}"/>` +
+         `<circle cx="${cx}" cy="${cy}" r="${fillR}" style="fill:${fill}"/>`;
+}
+
+function iconFor(item) {
+  const c = item.color;
+  let inner = '';
+  switch (item.kind) {
+    case 'maki':
+      inner = makiAt(50, 50, 44, c, false) + `<circle cx="50" cy="50" r="7" style="fill:var(--c-cucumber)"/>`;
+      break;
+    case 'uramaki':
+      inner = makiAt(50, 50, 44, c, true);
+      break;
+    case 'nigiri':
+      inner = `<rect x="14" y="48" width="72" height="28" rx="14" style="fill:var(--rice)"/>` +
+              `<path d="M8 52 Q8 30 50 30 Q92 30 92 52 Q92 62 50 58 Q8 62 8 52Z" style="fill:${c}"/>` +
+              `<path d="M26 42 Q50 34 74 42" fill="none" stroke="var(--rice)" stroke-width="3" stroke-linecap="round" opacity=".45"/>`;
+      break;
+    case 'set':
+      inner = makiAt(30, 34, 22, 'var(--c-salmon)', false) +
+              makiAt(70, 34, 22, 'var(--c-tuna)', true) +
+              makiAt(50, 70, 22, c, false);
+      break;
+    case 'bowl':
+      inner = `<path d="M16 48 H84 Q84 84 50 84 Q16 84 16 48Z" style="fill:var(--rice)"/>` +
+              `<ellipse cx="50" cy="48" rx="34" ry="7" style="fill:${c}"/>` +
+              `<path d="M38 36 Q34 28 38 20 M52 36 Q48 28 52 20 M66 36 Q62 28 66 20" fill="none" stroke="var(--muted)" stroke-width="3" stroke-linecap="round"/>`;
+      break;
+    case 'cup':
+      inner = `<rect x="32" y="26" width="36" height="56" rx="10" style="fill:${c}"/>` +
+              `<path d="M32 36 a10 10 0 0 1 10 -10 h16 a10 10 0 0 1 10 10 v4 h-36z" style="fill:var(--rice)"/>` +
+              `<path d="M58 26 L68 8" fill="none" stroke="var(--ink)" stroke-width="3" stroke-linecap="round"/>`;
+      break;
+    default: // dish
+      inner = `<ellipse cx="50" cy="62" rx="38" ry="15" style="fill:var(--rice)"/>` +
+              `<ellipse cx="50" cy="57" rx="20" ry="9" style="fill:${c}"/>`;
+  }
+  return `<svg viewBox="0 0 100 100" aria-hidden="true">${inner}</svg>`;
+}
+
+/* ==========================================================
+   Вспомогательные функции
+   ========================================================== */
+const $ = (sel, root = document) => root.querySelector(sel);
+const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+const esc = (s) => String(s).replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+const money = (n) => n.toLocaleString(lang === 'uk' ? 'uk-UA' : 'ru-RU') + ' ' + CURRENCY;
+const byId = (id) => MENU.find((m) => m.id === id);
+// текст блюда на текущем языке (или общая строка, если она одинаковая)
+const L = (v) => (typeof v === 'string' ? v : v[lang]);
+
+/* ==========================================================
+   Корзина: { id блюда: количество }
+   Хранится в браузере (localStorage), чтобы не пропадала.
+   ========================================================== */
+const STORE_KEY = 'yanasushi-cart-v1';
+let cart = loadCart();
+
+function loadCart() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(STORE_KEY) || '{}');
+    const clean = {};
+    for (const id in raw) {
+      const q = Math.floor(Number(raw[id]));
+      if (byId(id) && q > 0) clean[id] = Math.min(q, 99);
+    }
+    return clean;
+  } catch (e) { return {}; }
+}
+function saveCart() {
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(cart)); } catch (e) { /* без сохранения тоже работает */ }
+}
+
+const qtyOf = (id) => cart[id] || 0;
+const cartCount = () => Object.values(cart).reduce((a, b) => a + b, 0);
+const subtotal = () => Object.keys(cart).reduce((sum, id) => sum + byId(id).price * cart[id], 0);
+const deliveryCost = () => (subtotal() === 0 || subtotal() >= FREE_FROM ? 0 : DELIVERY_FEE);
+const total = () => subtotal() + deliveryCost();
+
+function changeQty(id, delta) {
+  const next = qtyOf(id) + delta;
+  if (next <= 0) delete cart[id];
+  else cart[id] = Math.min(next, 99);
+  saveCart();
+  refreshAll();
+}
+function removeItem(id) { delete cart[id]; saveCart(); refreshAll(); }
+
+/* ==========================================================
+   Меню на странице
+   ========================================================== */
+// HTML одной карточки блюда
+function cardHtml(m) {
+  const discount = m.oldPrice ? Math.round((1 - m.price / m.oldPrice) * 100) : 0;
+  const badge = discount ? `<span class="badge">−${discount}%</span>` : '';
+  const old = m.oldPrice ? `<s class="old">${money(m.oldPrice)}</s>` : '';
+  return `
+    <article class="card">
+      <div class="card-art">${badge}${iconFor(m)}<span class="chip" data-chip="${m.id}" hidden></span></div>
+      <div class="card-body">
+        <h3>${esc(L(m.name))}</h3>
+        <p>${esc(L(m.desc))}</p>
+        <div class="meta">${esc(L(m.pcs))} · ${esc(L(m.weight))}</div>
+        <div class="card-foot">
+          <span class="price">${old}<span>${money(m.price)}</span></span>
+          <button class="btn btn-primary btn-sm" type="button" data-act="add" data-id="${m.id}" aria-label="${esc(t('addAria', { name: L(m.name) }))}">${esc(t('addBtn'))}</button>
+        </div>
+      </div>
+    </article>`;
+}
+
+// заполняем разделы «Суши», «Сеты» и «Акции» по правилам из SECTION_GROUPS
+function renderMenu() {
+  for (const gridId in SECTION_GROUPS) {
+    const html = SECTION_GROUPS[gridId].map((group) => {
+      const items = MENU.filter(group.test);
+      if (!items.length) return '';
+      const heading = group.title ? `<h3 class="group-title">${esc(t(group.title))}</h3>` : '';
+      return `<div class="menu-block">${heading}<div class="grid">${items.map(cardHtml).join('')}</div></div>`;
+    }).join('');
+    $('#' + gridId).innerHTML = html;
+  }
+  refreshChips();
+}
+
+// маленький значок «×2» на карточке блюда
+function refreshChips() {
+  $$('[data-chip]').forEach((el) => {
+    const q = qtyOf(el.dataset.chip);
+    el.hidden = q === 0;
+    el.textContent = '×' + q;
+  });
+}
+
+/* ==========================================================
+   Панель корзины: три вида — cart, checkout, done
+   ========================================================== */
+let view = 'cart';
+let lastOrder = null;
+const drawer = $('#drawer');
+const overlay = $('#overlay');
+
+function renderCart() {
+  const body = $('#drawer-body');
+  const foot = $('#drawer-foot');
+  const title = $('#drawer-title');
+  const ids = Object.keys(cart);
+
+  if (view === 'done' && lastOrder) {
+    title.textContent = t('doneTitle');
+    body.innerHTML = `
+      <div class="done">
+        <p class="big">${t('thanks', { name: esc(lastOrder.name) })}</p>
+        <p>${t('doneText', { num: lastOrder.num, sum: money(lastOrder.total) })}</p>
+        <p class="demo-note" id="order-send-status" role="status">${esc(orderSendStatus)}</p>
+      </div>`;
+    foot.innerHTML = `
+      ${orderSendStatus !== 'Заказ отправлен в Telegram.' && orderSendStatus !== 'Замовлення надіслано в Telegram.' ? `<button class="btn btn-primary btn-block" type="button" data-act="retry-send">Повторить отправку</button>` : ''}
+      <button class="btn btn-ghost btn-block" type="button" data-act="finish">${esc(t('finishBtn'))}</button>`;
+    return;
+  }
+
+  if (view === 'checkout' && ids.length) {
+    title.textContent = t('checkoutTitle');
+    body.innerHTML = `
+      <button class="link-btn" type="button" data-act="back">${esc(t('back'))}</button>
+      <form class="form" id="checkout-form">
+        <div class="field">
+          <label for="f-name">${esc(t('fName'))}</label>
+          <input type="text" id="f-name" name="name" required autocomplete="given-name" placeholder="${esc(t('fNamePh'))}">
+        </div>
+        <div class="field">
+          <label for="f-phone">${esc(t('fPhone'))}</label>
+          <input type="tel" id="f-phone" name="phone" required minlength="7" autocomplete="tel" placeholder="+380 00 000 00 00">
+        </div>
+        <div class="field">
+          <label for="f-address">${esc(t('fAddr'))}</label>
+          <input type="text" id="f-address" name="address" required autocomplete="street-address" placeholder="${esc(t('fAddrPh'))}">
+        </div>
+        <fieldset class="field">
+          <legend>${esc(t('fPay'))}</legend>
+          <label class="radio"><input type="radio" name="pay" value="cash" checked> ${esc(t('payCash'))}</label>
+          <label class="radio"><input type="radio" name="pay" value="card"> ${esc(t('payCard'))}</label>
+        </fieldset>
+        <div class="field">
+          <label for="f-comment">${esc(t('fComment'))}</label>
+          <textarea id="f-comment" name="comment" placeholder="${esc(t('fCommentPh'))}"></textarea>
+        </div>
+      </form>`;
+    foot.innerHTML = `
+      <div class="sum-row"><span>${esc(t('sumItems'))}</span><span>${money(subtotal())}</span></div>
+      <div class="sum-row"><span>${esc(t('sumDelivery'))}</span><span>${deliveryCost() ? money(deliveryCost()) : esc(t('free'))}</span></div>
+      <div class="sum-row sum-total"><span>${esc(t('sumTotal'))}</span><span>${money(total())}</span></div>
+      <button class="btn btn-primary btn-block" type="submit" form="checkout-form">${esc(t('confirmBtn'))}</button>`;
+    return;
+  }
+
+  // обычный вид корзины
+  view = 'cart';
+  title.textContent = t('cartTitle');
+  if (!ids.length) {
+    body.innerHTML = `
+      <div class="empty">
+        <p>${esc(t('emptyText'))}</p>
+        <button class="btn btn-primary" type="button" data-act="to-menu">${esc(t('emptyBtn'))}</button>
+      </div>`;
+    foot.innerHTML = '';
+    return;
+  }
+
+  body.innerHTML = ids.map((id) => {
+    const m = byId(id);
+    const q = cart[id];
+    const name = L(m.name);
+    return `
+      <div class="line">
+        <div>
+          <div class="line-name">${esc(name)}</div>
+          <div class="line-sub">${money(m.price)} · ${esc(L(m.pcs))}</div>
+        </div>
+        <div class="line-total">${money(m.price * q)}</div>
+        <div class="line-controls">
+          <div class="stepper">
+            <button type="button" data-act="dec" data-id="${id}" aria-label="${esc(t('decAria', { name }))}">−</button>
+            <span aria-live="polite">${q}</span>
+            <button type="button" data-act="inc" data-id="${id}" aria-label="${esc(t('incAria', { name }))}">+</button>
+          </div>
+        </div>
+        <button class="link-btn" type="button" data-act="remove" data-id="${id}" style="justify-self:end">${esc(t('remove'))}</button>
+      </div>`;
+  }).join('');
+
+  const sub = subtotal();
+  const left = FREE_FROM - sub;
+  const pct = Math.min(100, Math.round((sub / FREE_FROM) * 100));
+  const note = left > 0 ? t('freeLeft', { sum: money(left) }) : t('freeDone');
+  foot.innerHTML = `
+    <div class="bar" style="--p:${pct}%"><i></i></div>
+    <p class="free-note">${esc(note)}</p>
+    <div class="sum-row"><span>${esc(t('sumItems'))}</span><span>${money(sub)}</span></div>
+    <div class="sum-row"><span>${esc(t('sumDelivery'))}</span><span>${deliveryCost() ? money(deliveryCost()) : esc(t('free'))}</span></div>
+    <div class="sum-row sum-total"><span>${esc(t('sumTotal'))}</span><span>${money(total())}</span></div>
+    <button class="btn btn-primary btn-block" type="button" data-act="checkout">${esc(t('checkoutBtn'))}</button>`;
+}
+
+function refreshBadge() { $('#cart-count').textContent = cartCount(); }
+
+// обновляем всё сразу и возвращаем фокус на ту же кнопку (удобно с клавиатуры)
+function refreshAll() {
+  const a = document.activeElement;
+  const act = a && a.dataset ? a.dataset.act : null;
+  const id = a && a.dataset ? a.dataset.id : null;
+  renderCart();
+  refreshBadge();
+  refreshChips();
+  if (act && id && drawer.contains(a)) {
+    const again = $(`#drawer [data-act="${act}"][data-id="${id}"]`) || $('#drawer-title');
+    if (again) again.focus();
+  }
+}
+
+let lastFocus = null;
+function openCart() {
+  lastFocus = document.activeElement;
+  if (view === 'done') view = 'cart';
+  renderCart();
+  drawer.classList.add('open');
+  overlay.classList.add('open');
+  drawer.setAttribute('aria-hidden', 'false');
+  document.documentElement.style.overflow = 'hidden';
+  $('#drawer-title').focus();
+}
+function closeCart() {
+  drawer.classList.remove('open');
+  overlay.classList.remove('open');
+  drawer.setAttribute('aria-hidden', 'true');
+  document.documentElement.style.overflow = '';
+  if (view === 'done') view = 'cart';
+  if (lastFocus && lastFocus.focus) lastFocus.focus();
+}
+function goToMenu() {
+  closeCart();
+  $('#sushi').scrollIntoView();
+}
+
+/* ==========================================================
+   Язык: применяем тексты ко всей странице
+   ========================================================== */
+function fillSettings() {
+  const values = { time: t('time'), hours: WORK_HOURS, phone: PHONE, fee: money(DELIVERY_FEE), freeFrom: money(FREE_FROM) };
+  $$('[data-fill]').forEach((el) => { el.textContent = values[el.dataset.fill]; });
+}
+
+function applyStaticText() {
+  $$('[data-i18n]').forEach((el) => { el.textContent = t(el.dataset.i18n); });
+  $$('[data-i18n-aria]').forEach((el) => { el.setAttribute('aria-label', t(el.dataset.i18nAria)); });
+  $$('[data-lang]').forEach((el) => { el.setAttribute('aria-pressed', String(el.dataset.lang === lang)); });
+  document.documentElement.lang = lang;
+}
+
+function setLang(next) {
+  if (next === lang || !I18N[next]) return;
+  lang = next;
+  try { localStorage.setItem(LANG_KEY, lang); } catch (e) { /* не страшно */ }
+
+  // если человек уже заполняет форму заказа, сохраняем то, что он успел ввести
+  const form = $('#checkout-form');
+  const typed = form ? Object.fromEntries(new FormData(form)) : null;
+
+  applyStaticText();
+  fillSettings();
+  renderMenu();
+  renderCart();
+  refreshBadge();
+
+  const newForm = $('#checkout-form');
+  if (typed && newForm) {
+    for (const key in typed) {
+      if (newForm.elements[key]) newForm.elements[key].value = typed[key];
+    }
+  }
+}
+
+/* ==========================================================
+   Заказ в Telegram
+   orderText — собирает текст заказа,
+   tgUrl — ссылка, которая открывает Telegram с этим текстом.
+   ========================================================== */
+function orderText(o) {
+  const lines = [
+    t('orderTitle', { num: o.num }),
+    `${t('fName')}: ${o.name}`,
+    `${t('fPhone')}: ${o.phone}`,
+    `${t('fAddr')}: ${o.address}`,
+    `${t('fPay')}: ${t(o.pay === 'card' ? 'payCard' : 'payCash')}`,
+  ];
+  if (o.comment) lines.push(`${t('oComment')}: ${o.comment}`);
+  lines.push('');
+  o.items.forEach((it) => {
+    const m = byId(it.id);
+    lines.push(`${L(m.name)} × ${it.qty} — ${money(m.price * it.qty)}`);
+  });
+  lines.push('');
+  lines.push(`${t('sumItems')}: ${money(o.subtotal)}`);
+  lines.push(`${t('sumDelivery')}: ${o.delivery ? money(o.delivery) : t('free')}`);
+  lines.push(`${t('sumTotal')}: ${money(o.total)}`);
+  return lines.join('\n');
+}
+
+function tgUrl(text) {
+  const msg = encodeURIComponent(text);
+  if (TELEGRAM_USERNAME) return `https://t.me/${encodeURIComponent(TELEGRAM_USERNAME)}?text=${msg}`;
+  return `https://t.me/share/url?url=%20&text=${msg}`; // получателя клиент выберет сам
+}
+
+function copyOrder(btn) {
+  const area = $('#order-text');
+  if (!area) return;
+  const showCopied = () => { btn.textContent = t('copied'); };
+  const selectText = () => { area.focus(); area.select(); };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(area.value).then(showCopied).catch(selectText);
+  } else {
+    selectText();
+  }
+}
+
+// Автоматическая отправка заказа в Telegram через Cloudflare Worker.
+let orderSendStatus = 'Отправляем заказ в Telegram…';
+let sendingOrder = false;
+async function sendOrderAutomatically() {
+  if (!lastOrder || sendingOrder) return;
+  if (!ORDER_API_URL || ORDER_API_URL.includes('YOUR-WORKER-NAME')) {
+    orderSendStatus = 'Не настроен адрес Worker. Вставьте URL в ORDER_API_URL в файле сайта.';
+    renderCart();
+    return;
+  }
+  sendingOrder = true;
+  orderSendStatus = 'Отправляем заказ в Telegram…';
+  renderCart();
+  try {
+    const response = await fetch(ORDER_API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ order: lastOrder, text: orderText(lastOrder), language: lang })
+    });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok || !result.ok) throw new Error(result.error || 'Ошибка отправки');
+    orderSendStatus = lang === 'uk' ? 'Замовлення надіслано в Telegram.' : 'Заказ отправлен в Telegram.';
+  } catch (error) {
+    orderSendStatus = lang === 'uk'
+      ? 'Не вдалося надіслати замовлення. Перевірте інтернет і натисніть «Повторить отправку».'
+      : 'Не удалось отправить заказ. Проверьте интернет и нажмите «Повторить отправку».';
+  } finally {
+    sendingOrder = false;
+    if (view === 'done') renderCart();
+  }
+}
+
+// клиент отправил заказ: очищаем корзину и закрываем панель
+function finishOrder() {
+  cart = {};
+  saveCart();
+  lastOrder = null;
+  view = 'cart';
+  refreshBadge();
+  refreshChips();
+  renderCart();
+  closeCart();
+}
+
+/* ==========================================================
+   Клики: одна точка входа для всех кнопок (data-act)
+   ========================================================== */
+document.addEventListener('click', (e) => {
+  const el = e.target.closest('[data-act]');
+  if (!el) return;
+  const id = el.dataset.id;
+  switch (el.dataset.act) {
+    case 'add': changeQty(id, 1); break;
+    case 'inc': changeQty(id, 1); break;
+    case 'dec': changeQty(id, -1); break;
+    case 'remove': removeItem(id); break;
+    case 'open-cart': openCart(); break;
+    case 'close-cart': closeCart(); break;
+    case 'to-menu': goToMenu(); break;
+    case 'lang': setLang(el.dataset.lang); break;
+    case 'copy-order': copyOrder(el); break;
+    case 'retry-send': sendOrderAutomatically(); break;
+    case 'finish': finishOrder(); break;
+    case 'checkout':
+      view = 'checkout'; renderCart(); $('#drawer-title').focus(); break;
+    case 'back':
+      view = 'cart'; renderCart(); $('#drawer-title').focus(); break;
+  }
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && drawer.classList.contains('open')) closeCart();
+});
+
+// отправка формы оформления
+drawer.addEventListener('submit', (e) => {
+  if (e.target.id !== 'checkout-form') return;
+  e.preventDefault();
+  const data = new FormData(e.target);
+  // запоминаем заказ. Корзину очищаем позже, когда клиент нажмёт «Я отправил(а) заказ»
+  lastOrder = {
+    num: Math.floor(1000 + Math.random() * 9000),
+    name: String(data.get('name') || '').trim(),
+    phone: String(data.get('phone') || '').trim(),
+    address: String(data.get('address') || '').trim(),
+    comment: String(data.get('comment') || '').trim(),
+    pay: data.get('pay') === 'card' ? 'card' : 'cash',
+    items: Object.keys(cart).map((id) => ({ id, qty: cart[id] })),
+    subtotal: subtotal(),
+    delivery: deliveryCost(),
+    total: total(),
+  };
+  view = 'done';
+  orderSendStatus = 'Отправляем заказ в Telegram…';
+  renderCart();
+  $('#drawer-title').focus();
+  sendOrderAutomatically();
+});
+
+/* ==========================================================
+   Запуск
+   ========================================================== */
+applyStaticText();
+fillSettings();
+renderMenu();
+renderCart();
+refreshBadge();
+</script>
+
+</body></html>
