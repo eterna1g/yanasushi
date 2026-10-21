@@ -959,7 +959,7 @@ function renderCart() {
         <p class="demo-note" id="order-send-status" role="status">${esc(orderSendStatus)}</p>
       </div>`;
     foot.innerHTML = `
-      ${orderSendStatus !== 'Заказ отправлен в Telegram.' && orderSendStatus !== 'Замовлення надіслано в Telegram.' ? `<button class="btn btn-primary btn-block" type="button" data-act="retry-send">Повторить отправку</button>` : ''}
+      ${orderSendStatus !== 'Заказ отправлен в обработку.' && orderSendStatus !== 'Замовлення надіслано в обробку.' ? `<button class="btn btn-primary btn-block" type="button" data-act="retry-send">Повторить отправку</button>` : ''}
       <button class="btn btn-ghost btn-block" type="button" data-act="finish">${esc(t('finishBtn'))}</button>`;
     return;
   }
@@ -1170,7 +1170,7 @@ function copyOrder(btn) {
 }
 
 // Автоматическая отправка заказа в Telegram через Cloudflare Worker.
-let orderSendStatus = 'Отправляем заказ в Telegram…';
+let orderSendStatus = 'Отправляем заказ в обработку…';
 let sendingOrder = false;
 async function sendOrderAutomatically() {
   if (!lastOrder || sendingOrder) return;
@@ -1180,7 +1180,7 @@ async function sendOrderAutomatically() {
     return;
   }
   sendingOrder = true;
-  orderSendStatus = 'Отправляем заказ в Telegram…';
+  orderSendStatus = 'Отправляем заказ в обработку…';
   renderCart();
   try {
     const response = await fetch(ORDER_API_URL, {
@@ -1190,7 +1190,7 @@ async function sendOrderAutomatically() {
     });
     const result = await response.json().catch(() => ({}));
     if (!response.ok || !result.ok) throw new Error(result.error || 'Ошибка отправки');
-    orderSendStatus = lang === 'uk' ? 'Замовлення надіслано в Telegram.' : 'Заказ отправлен в Telegram.';
+    orderSendStatus = lang === 'uk' ? 'Замовлення надіслано в обробку.' : 'Заказ отправлен в обработку.';
   } catch (error) {
     orderSendStatus = lang === 'uk'
       ? 'Не вдалося надіслати замовлення. Перевірте інтернет і натисніть «Повторить отправку».'
@@ -1262,7 +1262,7 @@ drawer.addEventListener('submit', (e) => {
     total: total(),
   };
   view = 'done';
-  orderSendStatus = 'Отправляем заказ в Telegram…';
+  orderSendStatus = 'Отправляем заказ в обработку…';
   renderCart();
   $('#drawer-title').focus();
   sendOrderAutomatically();
