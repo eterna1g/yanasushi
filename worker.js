@@ -17,6 +17,8 @@ const corsHeaders = (origin, env) => {
     "Access-Control-Allow-Methods": "GET, PUT, POST, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type, Authorization",
     "Content-Type": "application/json; charset=utf-8",
+    "Cache-Control": "no-store",
+    "X-Yanasushi-API": "1",
     "Vary": "Origin",
   };
 };
@@ -25,25 +27,29 @@ function json(data, status, headers) {
   return new Response(JSON.stringify(data), { status, headers });
 }
 
-export default {
-  async fetch(request, env) {
+async function handle(request, env) {
     const origin = request.headers.get("Origin") || "";
     const headers = corsHeaders(origin, env);
 
     if (request.method === "OPTIONS") {
       return new Response(null, { status: 204, headers });
     }
-    if (env.ALLOWED_ORIGIN && origin !== env.ALLOWED_ORIGIN) {
+    const path = new URL(request.url).pathname;
+    const publicRead = request.method === 'GET' && !origin && ['/health','/catalog'].includes(path);
+    if (env.ALLOWED_ORIGIN && origin !== env.ALLOWED_ORIGIN && !publicRead) {
       return json({ ok: false, error: "Origin not allowed" }, 403, headers);
     }
-    const path = new URL(request.url).pathname;
+    if (path === '/health' && request.method === 'GET') {
+      return json({ok:true,apiVersion:1,catalogStorage:!!env.CATALOG,adminConfigured:typeof env.ADMIN_TOKEN==='string' && env.ADMIN_TOKEN.length>=24},200,headers);
+    }
     if (path === '/catalog') {
       if (request.method === 'GET') {
         const items = env.CATALOG ? await env.CATALOG.get('menu', 'json') : null;
         return json(items ?? DEFAULT_MENU, 200, { ...headers, 'Cache-Control': 'no-store' });
       }
       if (request.method !== 'PUT') return json({ error: 'Method not allowed' }, 405, headers);
-      if (!env.ADMIN_TOKEN || env.ADMIN_TOKEN.length < 24 || !env.CATALOG) return json({ error: 'Настройте CATALOG KV и ADMIN_TOKEN (от 24 символов) в Cloudflare' }, 503, headers);
+      if (!env.CATALOG) return json({ error: 'В Cloudflare не подключено KV-хранилище CATALOG. Подключите привязку и повторите публикацию.' }, 503, headers);
+      if (!env.ADMIN_TOKEN || env.ADMIN_TOKEN.length < 24) return json({ error: 'В Cloudflare не настроен ADMIN_TOKEN (секрет от 24 символов).' }, 503, headers);
       const supplied = request.headers.get('Authorization') || '';
       const digest = async value => new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(value)));
       const a = await digest(supplied), b = await digest(`Bearer ${env.ADMIN_TOKEN}`);
@@ -65,7 +71,8 @@ export default {
         const bytes = new Uint8Array(size); let offset = 0;
         for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.byteLength; }
         const items = validateCatalog(JSON.parse(new TextDecoder().decode(bytes)));
-        await env.CATALOG.put('menu', JSON.stringify(items));
+        try { await env.CATALOG.put('menu', JSON.stringify(items)); }
+        catch { return json({error:'Хранилище меню недоступно. Черновик не опубликован; повторите позже.'},503,headers); }
         return json({ ok: true }, 200, headers);
       } catch (error) { return json({ error: error.message }, 400, headers); }
     }
@@ -105,5 +112,11 @@ export default {
       return json({ ok: false, error: "Telegram could not deliver the order" }, 502, headers);
     }
     return json({ ok: true }, 200, headers);
+}
+
+export default {
+  async fetch(request,env) {
+    try { return await handle(request,env); }
+    catch { return json({ok:false,error:"Сервис временно недоступен. Повторите запрос позже."},503,corsHeaders(request.headers.get("Origin") || "",env)); }
   }
 };

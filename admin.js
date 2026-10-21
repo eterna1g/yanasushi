@@ -1,3 +1,5 @@
+import { fetchCatalog, publishCatalog, catalogEndpoint } from './admin-api.js';
+import { draftStore } from './draft-store.js';
 import { ORDER_API_URL } from './site-settings.js';
 import { DEFAULT_MENU, withCatalogPhotos, validateCatalog, validImage } from './catalog.js';
 const $ = selector => document.querySelector(selector);
@@ -7,10 +9,17 @@ const categories = { rolls: 'Роллы', sets: 'Сеты', nigiri: 'Нигир�
 const text = value => typeof value === 'string' ? value : value?.ru || '';
 const escape = value => String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let items = structuredClone(DEFAULT_MENU), selected = null, dirty = false, editing = false, busy = false, photoBusy = false;
-let uploadedImage = '';
+let uploadedImage = '', editorSession = 0, photoSequence = 0;
 $('#api').value = ORDER_API_URL;
+$('#token').value = '';
 function status(message, error = false) { $('#status').textContent = message; $('#status').dataset.error = error; }
-function markDirty() { dirty = true; $('#dirty').textContent = 'Есть неопубликованные изменения'; }
+async function markDirty() {
+  dirty = true; $('#dirty').textContent = 'Есть неопубликованные изменения';
+  try {
+    const snapshot = {items:structuredClone(items),selected,updatedAt:Date.now()};
+    await draftStore.set(catalogEndpoint($('#api').value),snapshot);return true;
+  } catch { status('Не удалось автосохранить черновик. Сохраните его через «Экспорт JSON».',true);return false; }
+}
 function canDiscard() { return !editing || confirm('Изменения в форме ещё не сохранены. Перейти без сохранения?'); }
 function current() {
   const original = items.find(item => item.id === selected) || {};
@@ -36,7 +45,7 @@ function preview() {
   if (hasImage) $('#preview-image').src = item.image; else $('#preview-image').removeAttribute('src');
 }
 function select(id) {
-  selected = id; editing = false; uploadedImage = '';
+  editorSession++; selected = id; editing = false; uploadedImage = '';
   form.reset();
   const item = items.find(i => i.id === id);
   $('#editor-title').textContent = item ? 'Редактирование' : 'Новая позиция';
@@ -55,24 +64,24 @@ function render() {
   $('#list').innerHTML = visible.map(i => `<button class="item ${selected === i.id ? 'active' : ''}" data-id="${escape(i.id)}">${i.image ? `<img class="thumb" src="${escape(i.image)}" alt="" loading="lazy">` : '<span class="thumb">🍣</span>'}<span class="item-text"><strong>${escape(text(i.name))}</strong><small>${categories[i.cat]} · ${escape(text(i.weight))}</small></span><span class="item-price">${i.price} ₴</span></button>`).join('') || '<div class="empty">Позиций пока нет. Добавьте первую.</div>';
 }
 form.addEventListener('input', event => { if (event.target.name === 'image') uploadedImage = ''; editing = true; preview(); });
-form.addEventListener('submit', event => {
+form.addEventListener('submit', async event => {
   event.preventDefault();
   if (photoBusy) { status('Дождитесь обработки фото', true); return; }
   try {
     const item = current();
     const next = selected ? items.map(i => i.id === selected ? item : i) : [...items,item];
-    validateCatalog(next); items = next; markDirty(); select(item.id); status('Позиция сохранена в черновик. Нажмите «Опубликовать меню», чтобы обновить сайт.');
+    validateCatalog(next); items = next; select(item.id); if(await markDirty())status('Позиция сохранена в черновик. Нажмите «Опубликовать меню», чтобы обновить сайт.');
   } catch (error) { status(error.message,true); }
 });
 $('#list').addEventListener('click', event => { const button = event.target.closest('[data-id]'); if (button && canDiscard()) select(button.dataset.id); });
 $('#add').onclick = () => { if (canDiscard()) { select(null); field('nameRu').focus(); } };
-$('#delete').onclick = () => { if (selected && confirm('Удалить эту позицию из меню?')) { items = items.filter(i => i.id !== selected); markDirty(); select(items[0]?.id || null); status('Позиция удалена из черновика'); } };
+$('#delete').onclick = async () => { if (selected && confirm('Удалить эту позицию из меню?')) { items = items.filter(i => i.id !== selected); select(items[0]?.id || null); if(await markDirty())status('Позиция удалена из черновика'); } };
 $('#search').oninput = render; $('#filter').onchange = render;
 $('#remove-photo').onclick = () => { uploadedImage = ''; field('image').value = ''; editing = true; preview(); };
 $('#photo').onchange = async event => {
   const file = event.target.files[0]; if (!file) return;
   photoBusy = true;
-  const target = selected;
+  const session = editorSession, sequence = ++photoSequence;
   try {
     if (!['image/jpeg','image/png','image/webp'].includes(file.type) || file.size > 15000000) throw new Error('Выберите JPEG, PNG или WebP до 15 МБ');
     const bitmap = await createImageBitmap(file);
@@ -82,26 +91,19 @@ $('#photo').onchange = async event => {
     let result = canvas.toDataURL('image/webp',.8);
     if (result.length > 750000) result = canvas.toDataURL('image/webp',.5);
     if (result.length > 750000) throw new Error('Фото слишком большое. Выберите изображение меньшего размера.');
-    if (target !== selected) return;
+    if (session !== editorSession || sequence !== photoSequence) return;
     uploadedImage = result; field('image').value = ''; editing = true; preview(); status('Фото готово. Сохраните позицию.');
   } catch (error) { status(error.message,true); }
-  finally { photoBusy = false; event.target.value = ''; }
+  finally { if (sequence===photoSequence) { photoBusy = false; event.target.value = ''; } }
 };
-function endpoint() {
-  const url = new URL($('#api').value);
-  if (url.protocol !== 'https:' && !(url.protocol === 'http:' && ['127.0.0.1','localhost'].includes(url.hostname))) throw new Error('Используйте HTTPS-адрес API');
-  url.pathname = url.pathname.replace(/\/$/,'') + '/catalog'; url.search = ''; url.hash = ''; return url.href;
-}
 async function load(initial = false) {
   if (busy || (!initial && ((dirty && !confirm('Заменить неопубликованный черновик меню данными сервера?')) || !canDiscard()))) return;
   busy = true; $('#publish').disabled = true;
   try {
-    const response = await fetch(endpoint(),{cache:'no-store',signal:AbortSignal.timeout(10000)});
-    if (!response.ok) throw new Error('API каталога пока недоступен');
-    const data = await response.json(); validateCatalog(data);
+    const data = await fetchCatalog($('#api').value); validateCatalog(data);
     if (initial && (dirty || editing)) return;
-    items = withCatalogPhotos(data); dirty = false; $('#dirty').textContent = 'Нет изменений'; select(items[0]?.id || null); status('Меню загружено с сайта');
-  } catch (error) { status(initial ? 'Открыто встроенное меню. Для публикации подключите обновлённый Worker в разделе «Подключение к сайту».' : error.message,true); }
+    items = withCatalogPhotos(data); await draftStore.remove(catalogEndpoint($('#api').value)).catch(()=>{}); dirty = false; $('#dirty').textContent = 'Нет изменений'; select(items[0]?.id || null); status('Меню загружено с сайта');
+  } catch (error) { status((initial ? 'Открыт встроенный каталог. ' : '') + error.message,true); }
   finally { busy = false; $('#publish').disabled = false; }
 }
 $('#load').onclick = () => load();
@@ -113,10 +115,9 @@ $('#publish').onclick = async () => {
   try {
     validateCatalog(items);
     const published = JSON.stringify(items);
-    const response = await fetch(endpoint(),{method:'PUT',headers:{'Content-Type':'application/json',Authorization:`Bearer ${$('#token').value.trim()}`},body:published});
-    const result = await response.json();
-    if (!response.ok || !result.ok) throw new Error(result.error || 'Не удалось опубликовать меню');
-    if (JSON.stringify(items) === published) { dirty = false; $('#dirty').textContent = 'Опубликовано'; }
+    const api = $('#api').value;
+    await publishCatalog(api,JSON.parse(published),$('#token').value.trim());
+    if (JSON.stringify(items) === published) { dirty = false; $('#dirty').textContent = 'Опубликовано'; await draftStore.remove(catalogEndpoint(api)).catch(()=>{}); }
     status('Меню опубликовано. Обновление у гостей может занять до минуты.');
   } catch (error) { status(error.message,true); }
   finally { busy = false; $('#publish').disabled = false; }
@@ -132,10 +133,25 @@ $('#import').onchange = async event => {
     if (file.size > 8000000) throw new Error('Файл больше 8 МБ');
     const data = JSON.parse(await file.text()); validateCatalog(data);
     if (!canDiscard() || !confirm('Заменить черновик импортированным меню?')) return;
-    items = data; markDirty(); select(items[0]?.id || null); status('Меню импортировано в черновик');
+    items = data; select(items[0]?.id || null); if(await markDirty())status('Меню импортировано в черновик');
   } catch (error) { status(error.message,true); }
   finally { event.target.value = ''; }
 };
 window.addEventListener('beforeunload', event => { if (dirty || editing) { event.preventDefault(); event.returnValue = ''; } });
-select(items[0]?.id || null);
-load(true);
+async function start() {
+  select(items[0]?.id || null);
+  busy=true; $('#publish').disabled=true;
+  try {
+    const draft=await draftStore.get(catalogEndpoint($('#api').value));
+    if (draft) {
+      validateCatalog(draft.items);items=withCatalogPhotos(draft.items);dirty=true;
+      $('#dirty').textContent='Восстановлен неопубликованный черновик';
+      select(items.some(i=>i.id===draft.selected)?draft.selected:items[0]?.id || null);
+      status('Восстановлен черновик с этого устройства. Опубликуйте его или сохраните через экспорт JSON.');
+      return;
+    }
+  } catch { status('Автосохранение недоступно. Пользуйтесь экспортом JSON.',true); }
+  finally {busy=false;$('#publish').disabled=false;}
+  await load(true);
+}
+start();

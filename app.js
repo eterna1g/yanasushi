@@ -54,13 +54,14 @@ function saveCart() {
   try { localStorage.setItem(STORE_KEY, JSON.stringify(cart)); } catch (e) {  }
 }
 
-const qtyOf = (id) => cart[id] || 0;
+const qtyOf = (id) => Object.hasOwn(cart,id) ? cart[id] : 0;
 const cartCount = () => Object.values(cart).reduce((a, b) => a + b, 0);
 const subtotal = () => Object.keys(cart).reduce((sum, id) => sum + byId(id).price * cart[id], 0);
 const deliveryCost = () => (subtotal() === 0 || subtotal() >= FREE_FROM ? 0 : DELIVERY_FEE);
 const total = () => subtotal() + deliveryCost();
 
 function changeQty(id, delta) {
+  if (!byId(id)) return;
   const next = qtyOf(id) + delta;
   if (next <= 0) delete cart[id];
   else cart[id] = Math.min(next, 99);
@@ -115,8 +116,8 @@ function renderCart() {
         <p class="demo-note" id="order-send-status" role="status">${esc(orderSendStatus)}</p>
       </div>`;
     foot.innerHTML = `
-      ${orderSendStatus !== 'Заказ отправлен в обработку.' && orderSendStatus !== 'Замовлення надіслано в обробку.' ? `<button class="btn btn-primary btn-block" type="button" data-act="retry-send">Повторить отправку</button>` : ''}
-      <button class="btn btn-ghost btn-block" type="button" data-act="finish">${esc(t('finishBtn'))}</button>`;
+      ${!orderSent && !sendingOrder ? `<button class="btn btn-primary btn-block" type="button" data-act="retry-send">${esc(t('retrySend'))}</button>` : ''}
+      <button class="btn btn-ghost btn-block" type="button" data-act="finish" ${sendingOrder ? 'disabled' : ''}>${esc(t('finishBtn'))}</button>`;
     return;
   }
 
@@ -222,7 +223,8 @@ function refreshAll() {
 let lastFocus = null;
 function openCart() {
   lastFocus = document.activeElement;
-  if (view === 'done') view = 'cart';
+  if (lastOrder && sendingOrder) view = 'done';
+  else if (view === 'done') view = 'cart';
   renderCart();
   drawer.classList.add('open');
   overlay.classList.add('open');
@@ -304,7 +306,7 @@ function orderText(o) {
 
 // Автоматическая отправка заказа в Telegram через Cloudflare Worker.
 let orderSendStatus = 'Отправляем заказ в обработку…';
-let sendingOrder = false;
+let sendingOrder = false, orderSent = false;
 async function sendOrderAutomatically() {
   if (!lastOrder || sendingOrder) return;
   if (!ORDER_API_URL || ORDER_API_URL.includes('YOUR-WORKER-NAME')) {
@@ -313,32 +315,34 @@ async function sendOrderAutomatically() {
     return;
   }
   sendingOrder = true;
-  orderSendStatus = 'Отправляем заказ в обработку…';
+  const order = lastOrder;
+  orderSendStatus = t('orderSending');
   renderCart();
   try {
     const response = await fetch(ORDER_API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ order: lastOrder, text: orderText(lastOrder), language: lang })
+      body: JSON.stringify({ order, text: orderText(order), language: lang }),
+      signal: AbortSignal.timeout(20000)
     });
     const result = await response.json().catch(() => ({}));
     if (!response.ok || !result.ok) throw new Error(result.error || 'Ошибка отправки');
-    orderSendStatus = lang === 'uk' ? 'Замовлення надіслано в обробку.' : 'Заказ отправлен в обработку.';
+    orderSent = true;
+    for (const item of order.items) { const remaining=qtyOf(item.id)-item.qty; if(remaining>0)cart[item.id]=remaining;else delete cart[item.id]; }
+    saveCart();refreshBadge();refreshChips();
+    orderSendStatus = t('orderSuccess');
   } catch (error) {
-    orderSendStatus = lang === 'uk'
-      ? 'Не вдалося надіслати замовлення. Перевірте інтернет і натисніть «Повторить отправку».'
-      : 'Не удалось отправить заказ. Проверьте интернет и нажмите «Повторить отправку».';
+    orderSendStatus = t('orderError');
   } finally {
     sendingOrder = false;
     if (view === 'done') renderCart();
   }
 }
 
-// клиент отправил заказ: очищаем корзину и закрываем панель
+// A failed send must not discard the customer's cart.
 function finishOrder() {
-  cart = {};
-  saveCart();
-  lastOrder = null;
+  if(sendingOrder)return;
+  lastOrder = null;orderSent=false;
   view = 'cart';
   refreshBadge();
   refreshChips();
@@ -376,8 +380,9 @@ document.addEventListener('keydown', (e) => {
 drawer.addEventListener('submit', (e) => {
   if (e.target.id !== 'checkout-form') return;
   e.preventDefault();
+  if(sendingOrder)return;
   const data = new FormData(e.target);
-  // запоминаем заказ. Корзину очищаем позже, когда клиент нажмёт «Я отправил(а) заказ»
+  // Keep the snapshot and cart until the Worker confirms delivery.
   lastOrder = {
     num: Math.floor(1000 + Math.random() * 9000),
     name: String(data.get('name') || '').trim(),
@@ -390,8 +395,8 @@ drawer.addEventListener('submit', (e) => {
     delivery: deliveryCost(),
     total: total(),
   };
-  view = 'done';
-  orderSendStatus = 'Отправляем заказ в обработку…';
+  view = 'done';orderSent=false;
+  orderSendStatus = t('orderSending');
   renderCart();
   $('#drawer-title').focus();
   sendOrderAutomatically();

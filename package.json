@@ -5,13 +5,15 @@
   "type": "module",
   "scripts": {
     "build": "node scripts/build.mjs",
-    "test": "node tests/catalog.mjs && node tests/pages.mjs",
+    "test": "node tests/catalog.mjs && node tests/pages.mjs && node tests/admin-api.mjs",
     "start": "python3 -m http.server 8000",
-    "test:browser": "node tests/browser.mjs && node tests/carousel.mjs",
-    "export": "node scripts/export.mjs"
+    "test:browser": "node tests/browser.mjs && node tests/carousel.mjs && node tests/admin-runtime.mjs",
+    "export": "node scripts/export.mjs",
+    "test:admin": "node tests/admin-runtime.mjs"
   },
   "devDependencies": {
     "@playwright/test": "1.64.1",
-    "esbuild": "0.28.2"
+    "esbuild": "0.28.2",
+    "miniflare": "4.20260730.0"
   }
 }

@@ -4,14 +4,17 @@ import { fileURLToPath } from 'node:url';
 import { resolve, extname } from 'node:path';
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const types = {'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.webp':'image/webp','.json':'application/json'};
-export async function testServer() {
+export async function testServer({apiUrl} = {}) {
   const server = createServer(async (request,response) => {
     const pathname = new URL(request.url, 'http://localhost').pathname;
     if (!pathname.startsWith('/yanasushi/')) { response.writeHead(404).end(); return; }
     const relative = decodeURIComponent(pathname.slice('/yanasushi/'.length)) || 'index.html';
     const path = resolve(root, relative);
     if (!path.startsWith(root) || relative.split('/').some(part=>part.startsWith('.'))) { response.writeHead(403).end(); return; }
-    try { const bytes = await readFile(path); response.writeHead(200, {'Content-Type':types[extname(path)] || 'application/octet-stream'}).end(bytes); }
+    try { let bytes = await readFile(path);
+      const api=typeof apiUrl==='function'?apiUrl():apiUrl;
+      if(api && path.endsWith('.bundle.js')) bytes=Buffer.from(bytes.toString().replaceAll('https://yellow-term-d7c1.zubashenkoserhii.workers.dev',api));
+      response.writeHead(200, {'Content-Type':types[extname(path)] || 'application/octet-stream'}).end(bytes); }
     catch { response.writeHead(404).end(); }
   });
   await new Promise(resolve => server.listen(0,'127.0.0.1',resolve));

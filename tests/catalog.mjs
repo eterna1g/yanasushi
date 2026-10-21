@@ -42,3 +42,15 @@ assert.equal(withCatalogPhotos([olderItem])[0].image,image);
 assert.equal(withCatalogPhotos([{...olderItem,image:''}])[0].image,'');
 assert.deepEqual(withCatalogPhotos([]),[]);
 console.log('All 17 bundled photos exist; older menus gain photos; explicit removal and deleted items preserved');
+const origin='https://eterna1g.github.io';
+const failedStore={get:async()=>{throw new Error('private storage detail');},put:async()=>{throw new Error('private storage detail');}};
+for (const method of ['GET','PUT']) {
+  const response=await worker.fetch(new Request('https://example.com/catalog',{method,headers:{Origin:origin,Authorization:`Bearer ${env.ADMIN_TOKEN}`},...(method==='PUT'?{body:JSON.stringify(DEFAULT_MENU)}:{})}),{...env,CATALOG:failedStore,ALLOWED_ORIGIN:origin});
+  assert.equal(response.status,503);assert.equal(response.headers.get('Access-Control-Allow-Origin'),origin);
+  assert(!(await response.text()).includes('private storage detail'));
+}
+const missing=await worker.fetch(new Request('https://example.com/health',{headers:{Origin:origin}}),{ALLOWED_ORIGIN:origin});
+assert.deepEqual(await missing.json(),{ok:true,apiVersion:1,catalogStorage:false,adminConfigured:false});
+console.log('Worker failure checks PASS: storage failures retain CORS, private errors hidden, health reports missing bindings');
+
+assert.equal((await worker.fetch(new Request('https://example.com/health'),{ALLOWED_ORIGIN:origin})).status,200,'Health can be opened directly in a browser');

@@ -1,5 +1,6 @@
 export const I18N = {
   ru: {
+    retrySend:'Повторить отправку', orderSending:'Отправляем заказ в обработку…', orderSuccess:'Заказ отправлен в обработку.', orderError:'Не удалось отправить заказ. Корзина сохранена. Проверьте соединение и повторите отправку.',
     homeCompactTitle: 'Свежие суши. Хороший вечер.', sliderLabel: 'Предложения YANASUSHI',
     compactDelivery: '45–60 мин', compactDeliveryNote: 'и ужин у вас', compactFree: 'Доставка от {freeFrom} — 0 ₴', compactFreeNote: 'собирайтесь вместе', compactHours: '{hours}', compactHoursNote: 'готовим каждый день',
     navExtras: 'Дополнения', menuKicker: 'Наше меню', menuTitle: 'Что приготовим для вас?',
@@ -41,7 +42,7 @@ export const I18N = {
     footerCity: 'Черкассы', footerOrderHours: 'Заказы на сайте: ежедневно {orderHours}',
     footerInfo: 'Информация', footerSocial: 'Мы в соцсетях', footDelivery: 'Доставка и оплата',
     // корзина
-    cartTitle: 'Корзина', checkoutTitle: 'Оформление', doneTitle: 'Отправьте заказ',
+    cartTitle: 'Корзина', checkoutTitle: 'Оформление', doneTitle: 'Статус заказа',
     emptyText: 'В корзине пока пусто.', emptyBtn: 'Выбрать блюда',
     addBtn: 'В корзину', addAria: 'Добавить в корзину: {name}',
     decAria: 'Убрать одну порцию: {name}', incAria: 'Добавить ещё одну порцию: {name}',
@@ -57,12 +58,13 @@ export const I18N = {
     fComment: 'Комментарий (необязательно)', fCommentPh: 'Домофон, этаж, пожелания',
     confirmBtn: 'Далее: отправить заказ',
     thanks: 'Заказ собран, {name}!',
-    doneText: 'Заказ №{num} на сумму {sum} готов. Осталось отправить его нам',
+    doneText: 'Заказ №{num} на сумму {sum}. Статус отправки указан ниже.',
     payCashLower: 'наличными', payCardLower: 'картой',
     finishBtn: 'Закрыть заказ',
     orderTitle: 'Заказ №{num}', oComment: 'Комментарий',
   },
   uk: {
+    retrySend:'Повторити надсилання', orderSending:'Надсилаємо замовлення в обробку…', orderSuccess:'Замовлення надіслано в обробку.', orderError:'Не вдалося надіслати замовлення. Кошик збережено. Перевірте з’єднання й повторіть надсилання.',
     homeCompactTitle: 'Свіжі суші. Гарний вечір.', sliderLabel: 'Пропозиції YANASUSHI',
     compactDelivery: '45–60 хв', compactDeliveryNote: 'і вечеря у вас', compactFree: 'Доставка від {freeFrom} — 0 ₴', compactFreeNote: 'збирайтеся разом', compactHours: '{hours}', compactHoursNote: 'готуємо щодня',
     navExtras: 'Доповнення', menuKicker: 'Наше меню', menuTitle: 'Що приготуємо для вас?',
@@ -104,7 +106,7 @@ export const I18N = {
     footerCity: 'Черкаси', footerOrderHours: 'Замовлення на сайті: щодня {orderHours}',
     footerInfo: 'Інформація', footerSocial: 'Ми в соцмережах', footDelivery: 'Доставка і оплата',
     // кошик
-    cartTitle: 'Кошик', checkoutTitle: 'Оформлення', doneTitle: 'Надішліть замовлення',
+    cartTitle: 'Кошик', checkoutTitle: 'Оформлення', doneTitle: 'Статус замовлення',
     emptyText: 'У кошику поки порожньо.', emptyBtn: 'Обрати страви',
     addBtn: 'До кошика', addAria: 'Додати до кошика: {name}',
     decAria: 'Прибрати одну порцію: {name}', incAria: 'Додати ще одну порцію: {name}',
@@ -120,7 +122,7 @@ export const I18N = {
     fComment: 'Коментар (необов’язково)', fCommentPh: 'Домофон, поверх, побажання',
     confirmBtn: 'Далі: надіслати замовлення',
     thanks: 'Замовлення зібрано, {name}!',
-    doneText: 'Замовлення №{num} на суму {sum} готове. Залишилось надіслати його нам',
+    doneText: 'Замовлення №{num} на суму {sum}. Статус надсилання вказано нижче.',
     payCashLower: 'готівкою', payCardLower: 'карткою',
     finishBtn: 'Закрити замовлення',
     orderTitle: 'Замовлення №{num}', oComment: 'Коментар',
