@@ -23,7 +23,7 @@ Node.js 24 и Python 3. Откройте порт 8000. Готовые HTML/JS-�
 
 Workflow `.github/workflows/pages.yml` собирает и публикует сайт при каждом push в `main`. В Settings → Pages нужно выбрать Source: **GitHub Actions**.
 
-Адрес после первой успешной публикации: https://eterna1g.github.io/yanasushidelivery/
+Адрес после первой успешной публикации: https://eterna1g.github.io/yanasushi/
 
 `npm run export` создаёт `dist/` только с публичными файлами сайта. Исходники Worker, тесты и служебные файлы туда не входят.
 
