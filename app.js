@@ -1,3 +1,4 @@
+import { DEFAULT_SLIDES, validateSlides } from './slides-config.js';
 import { initCarousel } from './carousel.js';
 import { contactBarHtml } from './contact-bar.js';
 import { CURRENCY, DELIVERY_FEE, FREE_FROM, WORK_HOURS, ORDER_HOURS, PHONE, CONTACTS, ORDER_API_URL } from './site-settings.js';
@@ -27,6 +28,7 @@ function t(key, vars) {
 }
 
 let MENU = DEFAULT_MENU;
+let SLIDES = DEFAULT_SLIDES;
 
 const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
@@ -271,7 +273,7 @@ function setLang(next) {
   applyStaticText();
   fillSettings();
   renderMenu();
-  carousel?.update(MENU,lang);
+  carousel?.update(MENU,lang,SLIDES);
   renderCart();
   refreshBadge();
 
@@ -403,7 +405,7 @@ drawer.addEventListener('submit', (e) => {
 });
 
 const carousel = initCarousel(document.querySelector('[data-carousel]'));
-carousel?.update(MENU,lang);
+carousel?.update(MENU,lang,SLIDES);
 applyStaticText();
 fillSettings();
 renderMenu();
@@ -420,7 +422,7 @@ async function updateCatalog() {
     validateCatalog(catalog);
     if (view !== 'cart' || drawer.classList.contains('open')) return;
     MENU = withCatalogPhotos(catalog);
-    carousel?.update(MENU,lang);
+    carousel?.update(MENU,lang,SLIDES);
     cart = loadCart();
     renderMenu();
     renderCart();
@@ -430,3 +432,14 @@ async function updateCatalog() {
   }
 }
 updateCatalog();
+
+async function updateSlides() {
+  if(!carousel)return;
+  try {
+    const response=await fetch(`${ORDER_API_URL.replace(/\/$/,'')}/slides`,{cache:'no-store',signal:AbortSignal.timeout(5000)});
+    if(!response.ok)throw new Error('Slides unavailable');
+    SLIDES=validateSlides(await response.json());
+    carousel.update(MENU,lang,SLIDES);
+  } catch(error) { console.warn('Using bundled slides:',error.message); }
+}
+updateSlides();

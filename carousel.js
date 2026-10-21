@@ -10,7 +10,7 @@ export function initCarousel(root) {
   const media = matchMedia('(prefers-reduced-motion: reduce)');
   let slides = Array.from(stage.children);
   let signature = '';
-  let index = 0, lang = 'ru', timer = null;
+  let index = 0, lang = 'ru', timer = null, intervalMs = PROMOTION_INTERVAL, lastConfig, manuallyChanged = false;
   let userPaused = media.matches, hovered = false, focused = false, inViewport = true, pointer = null, suppressClickUntil = 0;
   controls.hidden = false;
   root.classList.add('carousel-ready');
@@ -21,7 +21,7 @@ export function initCarousel(root) {
     clearTimeout(timer);
     const playing = !userPaused && !media.matches && !hovered && !focused && !document.hidden && inViewport && slides.length > 1;
     root.dataset.playing = String(playing);
-    if (playing) timer = setTimeout(() => show(index + 1), PROMOTION_INTERVAL);
+    if (playing) timer = setTimeout(() => show(index + 1), intervalMs);
   }
   function render() {
     const labels = words();
@@ -53,6 +53,8 @@ export function initCarousel(root) {
     schedule();
   }
   function show(next, manual = false) {
+    if (!slides.length) return;
+    if (manual) manuallyChanged = true;
     const focusWasInSlide = slides[index]?.contains(document.activeElement);
     index = (next + slides.length) % slides.length;
     render();
@@ -88,22 +90,26 @@ export function initCarousel(root) {
   media.addEventListener('change',() => {if(media.matches)userPaused=true;render();});
   window.addEventListener('pagehide',() => clearTimeout(timer));
   if ('IntersectionObserver' in window) new IntersectionObserver(entries => { inViewport=entries[0].isIntersecting;schedule(); },{threshold:.25}).observe(root);
-  function update(menu,nextLang='ru') {
+  function update(menu,nextLang='ru',config) {
+    intervalMs=config?.intervalMs || PROMOTION_INTERVAL;
     const id = slides[index]?.dataset.slideId;
     lang = nextLang;
-    const offers = promotionSlides(menu,lang);
-    const nextSignature = JSON.stringify(offers);
+    const offers = promotionSlides(menu,lang,config);
+    const nextSignature = JSON.stringify([intervalMs,offers]);
     if (signature === nextSignature) return;
     signature = nextSignature;
     const dotFocus = document.activeElement?.dataset?.carouselDot;
     const slideFocus = stage.contains(document.activeElement);
     stage.innerHTML = offers.map(slideMarkup).join('');
     slides = Array.from(stage.children);
-    index = Math.max(0,offers.findIndex(offer=>offer.id===id));
+    root.hidden = slides.length === 0;
+    controls.hidden = slides.length < 2;
+    index = config !== lastConfig && !manuallyChanged ? 0 : Math.max(0,offers.findIndex(offer=>offer.id===id));
+    lastConfig = config;
     dots.innerHTML = slides.map((_,i)=>`<button type="button" data-carousel-dot="${i}" aria-label="${words().show} ${i+1}" class="carousel-dot"></button>`).join('');
     render();
     if (dotFocus !== undefined) dots.children[Math.min(Number(dotFocus),slides.length-1)]?.focus({preventScroll:true});
-    else if (slideFocus) slides[index].querySelector('a').focus({preventScroll:true});
+    else if (slideFocus && slides[index]) slides[index].querySelector('a').focus({preventScroll:true});
   }
   return { update };
 }

@@ -42,7 +42,7 @@ try {
   const errors=[];page.on('pageerror',e=>errors.push(e.message));page.on('dialog',d=>d.accept());
   await page.goto(server.base+'admin.html');
   await expect(page.locator('#status')).toContainText('Меню загружено с сайта');
-  assert.equal(await page.locator('.item').count(),17);
+  assert.equal(await page.locator('#list .item').count(),17);
   await page.locator('#add').click();
   await page.locator('[name=nameRu]').fill('Тестовый ролл');await page.locator('[name=nameUk]').fill('Тестовий рол');
   await page.locator('[name=price]').fill('350');await page.locator('[name=oldPrice]').fill('420');
@@ -53,7 +53,7 @@ try {
   await expect(page.locator('#status')).toContainText('Фото готово');
   await page.locator('#editor button[type=submit]').click();
   await expect(page.locator('#status')).toContainText('Позиция сохранена');
-  assert.equal(await page.locator('.item').count(),18);
+  assert.equal(await page.locator('#list .item').count(),18);
   await page.reload();await expect(page.locator('#status')).toContainText('Восстановлен черновик');
   await expect(page.locator('[name=nameRu]')).toHaveValue('Тестовый ролл');
   assert.equal(await page.locator('#token').inputValue(),'');
@@ -66,9 +66,9 @@ try {
   let published=await (await call('/catalog')).json();assert.equal(published.length,18);
   const added=published.find(i=>i.name.ru==='Тестовый ролл');assert.match(added.image,/^data:image\/webp/);
   await page.reload();await expect(page.locator('#status')).toContainText('Меню загружено с сайта');
-  assert.equal(await page.locator('.item').count(),18);assert.equal(await page.locator('#token').inputValue(),'');
-  await page.locator('#search').fill('Тестовий');assert.equal(await page.locator('.item').count(),1);
-  await page.locator('.item').click();
+  assert.equal(await page.locator('#list .item').count(),18);assert.equal(await page.locator('#token').inputValue(),'');
+  await page.locator('#search').fill('Тестовий');assert.equal(await page.locator('#list .item').count(),1);
+  await page.locator('#list .item').click();
   await page.locator('#remove-photo').click();await page.locator('#editor button[type=submit]').click();await expect(page.locator('#status')).toContainText('Позиция сохранена');
   await page.locator('summary').click();await page.locator('#token').fill(token);await page.locator('#publish').click();await expect(page.locator('#status')).toContainText('Меню опубликовано');
   assert.equal((await (await call('/catalog')).json()).find(i=>i.id===added.id).image,'');
@@ -104,7 +104,7 @@ try {
   assert.equal(await shop.locator('#cart-count').textContent(),'0');assert.equal(sent.length,3);assert.match(sent[2].text,/666/);
   await shop.locator('[data-act=finish]').click();
 
-  await page.locator('#search').fill('Тестовый');await page.locator('.item').click();
+  await page.locator('#search').fill('Тестовый');await page.locator('#list .item').click();
   await page.locator('[name=cat]').selectOption('sets');await page.locator('[name=price]').fill('650');await page.locator('[name=oldPrice]').fill('900');
   await page.locator('#editor button[type=submit]').click();await expect(page.locator('#status')).toContainText('Позиция сохранена');
   await page.locator('#publish').click();await expect(page.locator('#status')).toContainText('Меню опубликовано');
@@ -124,7 +124,7 @@ try {
   await oldPage.locator('#editor button[type=submit]').click();await expect(oldPage.locator('#status')).toContainText('Позиция сохранена');
   await oldPage.locator('summary').click();await oldPage.locator('#token').fill(token);await oldPage.locator('#publish').click();
   await expect(oldPage.locator('#status')).toContainText('старая версия');await oldPage.reload();await expect(oldPage.locator('#status')).toContainText('Восстановлен черновик');
-  assert.equal(await oldPage.locator('.item').count(),18);
+  assert.equal(await oldPage.locator('#list .item').count(),18);
   await oldContext.close();
   console.log('Admin/runtime PASS: REAL HTTP preflight+CORS, real KV, auth, new item+photo, draft recovery, token not persisted, search RU/UA, photo removal, JSON export/import, publication+storefront, price/category edits, deletion, checkout failure+retry+success with mocked Telegram, legacy Worker diagnosis, mobile, no JS errors');
 } finally {await browser?.close();await legacy?.dispose();await runtime.dispose();await server.close();await rm(storage,{recursive:true,force:true});}

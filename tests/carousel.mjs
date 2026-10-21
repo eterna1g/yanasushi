@@ -19,7 +19,7 @@ try {
   await page.goto(server.base+'index.html');
   const root=page.locator('[data-carousel]');
   await page.waitForFunction(()=>document.querySelector('[data-carousel]').dataset.playing==='true');
-  assert.equal(await root.locator('.promo-slide').count(),3);
+  assert.equal(await root.locator('.promo-slide').count(),6);
   assert.equal(await root.locator('.is-active').getAttribute('data-slide-id'),'sharing');
   assert.equal(await page.locator('.social-icon').count(),3);
   assert.equal(await page.locator('.contact-bar a:not([href])').count(),0);
@@ -31,6 +31,7 @@ try {
   assert.equal(await root.getAttribute('data-active-index'),before,'Hover pauses autoplay');
   await root.locator('[data-carousel-next]').click();
   assert.equal(await root.getAttribute('data-active-index'),'2');
+  await root.locator('[data-carousel-dot="5"]').click();
   await page.keyboard.press('ArrowRight');
   assert.equal(await root.getAttribute('data-active-index'),'0','Wrap-around with keyboard');
   await root.locator('[data-carousel-dot="1"]').click();
@@ -80,7 +81,7 @@ try {
   await live.route('https://yellow-term-d7c1.zubashenkoserhii.workers.dev/**',r=>r.fulfill({status:200,contentType:'application/json',body:JSON.stringify(liveMenu)}));
   const livePage=await live.newPage();await livePage.goto(server.base+'index.html');
   await livePage.waitForFunction(()=>document.querySelector('[data-slide-id=phila] .promo-offer strong')?.textContent.includes('199'));
-  liveMenu=DEFAULT_MENU.filter(item=>!['phila','set-start'].includes(item.id));
+  liveMenu=DEFAULT_MENU.filter(item=>!['phila','set-start','dragon','set-party','set-veggie'].includes(item.id));
   await livePage.reload();
   await livePage.waitForFunction(()=>document.querySelectorAll('.promo-slide').length===1);
   assert(await livePage.locator('[data-carousel-toggle]').isDisabled());

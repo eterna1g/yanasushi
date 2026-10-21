@@ -1,3 +1,4 @@
+import { initSlideAdmin } from './admin-slides.js';
 import { fetchCatalog, publishCatalog, catalogEndpoint } from './admin-api.js';
 import { draftStore } from './draft-store.js';
 import { ORDER_API_URL } from './site-settings.js';
@@ -155,3 +156,5 @@ async function start() {
   await load(true);
 }
 start();
+
+initSlideAdmin();

@@ -1,10 +1,12 @@
 <!doctype html>
-<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Управление меню · YANASUSHI</title><link rel="stylesheet" href="admin.css"></head>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Управление сайтом · YANASUSHI</title><link rel="stylesheet" href="admin.css?v=0b3329003be9"></head>
 <body>
-<header><a class="brand" href="index.html">YANA<span>SUSHI</span></a><span class="label">УПРАВЛЕНИЕ МЕНЮ</span><a href="index.html" target="_blank" rel="noopener">Открыть сайт ↗</a></header>
+<header><a class="brand" href="index.html">YANA<span>SUSHI</span></a><span class="label">УПРАВЛЕНИЕ САЙТОМ</span><a href="index.html" target="_blank" rel="noopener">Открыть сайт ↗</a></header>
 <main>
-<section class="intro"><div><p class="eyebrow">ВАША КУХНЯ, ВАШЕ МЕНЮ</p><h1>Всё вкусное — здесь.</h1><p>Добавляйте блюда, обновляйте фото и публикуйте меню для гостей.</p></div><button id="add" class="primary">＋ Добавить позицию</button></section>
-<details class="connection"><summary>Подключение к сайту</summary><div class="connection-fields"><label>Адрес API Worker<input id="api" type="url" required></label><label>Ключ администратора<input id="token" type="password" autocomplete="off" placeholder="Хранится только до закрытия страницы"></label><button id="load">Загрузить меню</button></div><p>Для публикации нужны KV-привязка CATALOG и секрет ADMIN_TOKEN в Cloudflare. Ключ не сохраняется в браузере. Черновик меню автоматически сохраняется на этом устройстве. <a href="https://github.com/eterna1g/yanasushi/blob/main/cloudflare-worker.js" target="_blank" rel="noopener">Готовый код Worker</a></p></details>
+<nav class="admin-tabs" aria-label="Разделы управления"><button type="button" data-admin-tab="catalog" aria-pressed="true">🍣 Меню</button><button type="button" data-admin-tab="slides" aria-pressed="false">▣ Слайды</button></nav>
+<details class="connection"><summary>Подключение к сайту</summary><div class="connection-fields"><label>Адрес API Worker<input id="api" type="url" required></label><label>Ключ администратора<input id="token" type="password" autocomplete="off" placeholder="Хранится только до закрытия страницы"></label><button id="load">Загрузить меню</button></div><p>Для публикации нужны KV-привязка CATALOG и секрет ADMIN_TOKEN в Cloudflare. Ключ не сохраняется в браузере. Черновики меню и слайдов автоматически сохраняются на этом устройстве. <a href="https://github.com/eterna1g/yanasushi/blob/main/cloudflare-worker.js" target="_blank" rel="noopener">Готовый код Worker</a></p></details>
+<section id="catalog-panel"><section class="intro"><div><p class="eyebrow">ВАША КУХНЯ, ВАШЕ МЕНЮ</p><h1>Всё вкусное — здесь.</h1><p>Добавляйте блюда, обновляйте фото и публикуйте меню для гостей.</p></div><button id="add" class="primary">＋ Добавить позицию</button></section>
+
 <div class="toolbar"><div class="filters"><input id="search" type="search" placeholder="Поиск по названию…" aria-label="Поиск"><select id="filter" aria-label="Категория"><option value="">Все категории</option><option value="rolls">Роллы</option><option value="sets">Сеты</option><option value="nigiri">Нигири</option><option value="extra">Дополнительно</option></select></div><div><button id="export">Экспорт JSON</button><label class="button">Импорт JSON<input id="import" type="file" accept="application/json,.json" hidden></label></div></div>
 <div class="workspace"><section><div class="section-head"><h2>Каталог <span id="count"></span></h2><span id="dirty">Нет изменений</span></div><div id="list"></div></section>
 <aside><form id="editor"><div class="section-head"><h2 id="editor-title">Редактирование</h2><button type="button" id="delete" class="danger">Удалить</button></div>
@@ -16,4 +18,23 @@
 <div class="preview"><img id="preview-image" alt="Предпросмотр блюда" hidden><div id="preview-placeholder">🍣</div><h3 id="preview-name"></h3><p id="preview-desc"></p><strong id="preview-price"></strong></div>
 <button type="submit" class="primary full">Сохранить позицию в черновик</button></form></aside></div>
 <footer><p id="status" role="status" aria-live="polite">Загрузка меню…</p><button id="publish" class="primary">Опубликовать меню</button></footer>
-</main><script defer src="admin.bundle.js?v=44c63e3a1f61"></script></body></html>
+</section>
+<section id="slides-panel" hidden>
+<div class="intro"><div><p class="eyebrow">ПЕРВОЕ ВПЕЧАТЛЕНИЕ</p><h1>Слайды главной.</h1><p>Меняйте баннеры, расставляйте акценты. До 20 слайдов.</p></div><button id="slide-add" class="primary">＋ Добавить слайд</button></div>
+<div class="toolbar"><label>Автопереключение, секунд<input id="slide-interval" type="number" min="3" max="15" step="0.5" value="4.5"></label><button id="slides-load">Загрузить с сайта</button></div>
+<div class="workspace"><section><div class="section-head"><h2>Баннеры <span id="slides-count"></span></h2><span id="slides-dirty">Нет изменений</span></div><div id="slides-list"></div><p class="hint">Порядок меняется кнопками ↑ и ↓ в редакторе. Скрытые баннеры остаются в админке.</p></section>
+<aside><form id="slide-editor">
+<div class="section-head"><h2>Редактирование слайда</h2><button id="slide-delete" type="button" class="danger">Удалить</button></div>
+<div class="slide-order"><button id="slide-up" type="button">↑ Выше</button><button id="slide-down" type="button">↓ Ниже</button></div>
+<label class="check"><input name="enabled" type="checkbox" checked> Показывать на сайте</label>
+<div class="pair"><label>Фон<select name="theme"><option value="sage">Шалфей</option><option value="peach">Персиковый</option><option value="forest">Тёмный лес</option></select></label><label>Тип предложения<select name="mode"><option value="product">Блюдо — цена из меню</option><option value="delivery">Условия доставки</option><option value="custom">Свой текст</option></select></label></div>
+<label id="slide-product-label">Блюдо из меню<select name="productId"></select></label>
+<p class="hint" id="slide-price-hint">Цена и скидка обновляются из меню. Если блюдо удалено, слайд скрывается.</p>
+<div class="pair"><label>Надпись сверху · RU<input name="eyebrowRu" maxlength="600" ></label><label>Надпись сверху · UA<input name="eyebrowUk" maxlength="600" placeholder="Если пусто — текст RU"></label></div><div class="pair"><label>Заголовок · RU<textarea name="titleRu" maxlength="600" required></textarea></label><label>Заголовок · UA<textarea name="titleUk" maxlength="600" placeholder="Если пусто — текст RU"></textarea></label></div><div class="pair"><label>Описание · RU<textarea name="descriptionRu" maxlength="600" ></textarea></label><label>Описание · UA<textarea name="descriptionUk" maxlength="600" placeholder="Если пусто — текст RU"></textarea></label></div><div class="pair"><label>Предложение (свой текст) · RU<input name="valueRu" maxlength="600" ></label><label>Предложение (свой текст) · UA<input name="valueUk" maxlength="600" placeholder="Если пусто — текст RU"></label></div><div class="pair"><label>Метка (без скидки) · RU<input name="badgeRu" maxlength="600" ></label><label>Метка (без скидки) · UA<input name="badgeUk" maxlength="600" placeholder="Если пусто — текст RU"></label></div><div class="pair"><label>Текст кнопки · RU<input name="ctaRu" maxlength="600" required></label><label>Текст кнопки · UA<input name="ctaUk" maxlength="600" placeholder="Если пусто — текст RU"></label></div>
+<label>Ссылка кнопки<input name="href" required placeholder="sets.html или sushi.html#product-phila"></label>
+<label>Фото — HTTPS или путь assets/…<input name="image" required></label><label class="button">Загрузить своё фото<input id="slide-photo" type="file" accept="image/jpeg,image/png,image/webp" hidden></label><p class="hint">Фото уменьшается автоматически. Тексты лучше оставлять в полях, а на фото — свободное место слева.</p>
+<div id="slide-preview" class="slide-preview"></div>
+<button type="submit" class="primary full">Сохранить слайд в черновик</button></form></aside></div>
+<footer><p id="slides-status" role="status" aria-live="polite">Загрузка слайдов…</p><button id="publish-slides" class="primary">Опубликовать слайды</button></footer>
+</section>
+</main><script defer src="admin.bundle.js?v=90731e224234"></script></body></html>

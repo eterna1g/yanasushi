@@ -5,9 +5,9 @@
   "type": "module",
   "scripts": {
     "build": "node scripts/build.mjs",
-    "test": "node tests/catalog.mjs && node tests/pages.mjs && node tests/admin-api.mjs",
+    "test": "node tests/catalog.mjs && node tests/pages.mjs && node tests/admin-api.mjs && node tests/slides.mjs",
     "start": "python3 -m http.server 8000",
-    "test:browser": "node tests/browser.mjs && node tests/carousel.mjs && node tests/admin-runtime.mjs",
+    "test:browser": "node tests/browser.mjs && node tests/carousel.mjs && node tests/admin-runtime.mjs && node tests/slides-runtime.mjs",
     "export": "node scripts/export.mjs",
     "test:admin": "node tests/admin-runtime.mjs"
   },

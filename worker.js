@@ -1,3 +1,4 @@
+import { DEFAULT_SLIDES, validateSlides } from './slides-config.js';
 import { DEFAULT_MENU, validateCatalog } from './catalog.js';
 
 /**
@@ -35,17 +36,19 @@ async function handle(request, env) {
       return new Response(null, { status: 204, headers });
     }
     const path = new URL(request.url).pathname;
-    const publicRead = request.method === 'GET' && !origin && ['/health','/catalog'].includes(path);
+    const publicRead = request.method === 'GET' && !origin && ['/health','/catalog','/slides'].includes(path);
     if (env.ALLOWED_ORIGIN && origin !== env.ALLOWED_ORIGIN && !publicRead) {
       return json({ ok: false, error: "Origin not allowed" }, 403, headers);
     }
     if (path === '/health' && request.method === 'GET') {
       return json({ok:true,apiVersion:1,catalogStorage:!!env.CATALOG,adminConfigured:typeof env.ADMIN_TOKEN==='string' && env.ADMIN_TOKEN.length>=24},200,headers);
     }
-    if (path === '/catalog') {
+    if (path === '/catalog' || path === '/slides') {
+      const isSlides=path==='/slides';
+      const key=isSlides?'slides':'menu';
       if (request.method === 'GET') {
-        const items = env.CATALOG ? await env.CATALOG.get('menu', 'json') : null;
-        return json(items ?? DEFAULT_MENU, 200, { ...headers, 'Cache-Control': 'no-store' });
+        const items = env.CATALOG ? await env.CATALOG.get(key, 'json') : null;
+        return json(items ?? (isSlides?DEFAULT_SLIDES:DEFAULT_MENU), 200, { ...headers, 'Cache-Control': 'no-store' });
       }
       if (request.method !== 'PUT') return json({ error: 'Method not allowed' }, 405, headers);
       if (!env.CATALOG) return json({ error: 'В Cloudflare не подключено KV-хранилище CATALOG. Подключите привязку и повторите публикацию.' }, 503, headers);
@@ -65,14 +68,14 @@ async function handle(request, env) {
           const { value, done } = await reader.read();
           if (done) break;
           size += value.byteLength;
-          if (size > 8000000) { await reader.cancel(); return json({ error: 'Каталог больше 8 МБ' }, 413, headers); }
+          if (size > 8000000) { await reader.cancel(); return json({ error: 'Данные больше 8 МБ' }, 413, headers); }
           chunks.push(value);
         }
         const bytes = new Uint8Array(size); let offset = 0;
         for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.byteLength; }
-        const items = validateCatalog(JSON.parse(new TextDecoder().decode(bytes)));
-        try { await env.CATALOG.put('menu', JSON.stringify(items)); }
-        catch { return json({error:'Хранилище меню недоступно. Черновик не опубликован; повторите позже.'},503,headers); }
+        const items = (isSlides?validateSlides:validateCatalog)(JSON.parse(new TextDecoder().decode(bytes)));
+        try { await env.CATALOG.put(key, JSON.stringify(items)); }
+        catch { return json({error:`Хранилище ${isSlides?'слайдов':'меню'} недоступно. Черновик не опубликован; повторите позже.`},503,headers); }
         return json({ ok: true }, 200, headers);
       } catch (error) { return json({ error: error.message }, 400, headers); }
     }
