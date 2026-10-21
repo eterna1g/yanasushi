@@ -1,0 +1,17 @@
+{
+  "name": "yanasushi",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "test": "node tests/catalog.mjs && node tests/pages.mjs",
+    "start": "python3 -m http.server 8000",
+    "test:browser": "node tests/browser.mjs && node tests/carousel.mjs",
+    "export": "node scripts/export.mjs"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.64.1",
+    "esbuild": "0.28.2"
+  }
+}
