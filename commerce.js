@@ -9,7 +9,9 @@ export async function readJson(request,limit) {
   let size=0;const chunks=[];
   for(;;){const {value,done}=await reader.read();if(done)break;size+=value.byteLength;if(size>limit){await reader.cancel();fail(413,'TOO_LARGE','Слишком большой запрос.');}chunks.push(value);}
   const bytes=new Uint8Array(size);let offset=0;for(const chunk of chunks){bytes.set(chunk,offset);offset+=chunk.byteLength;}
-  try{return JSON.parse(new TextDecoder().decode(bytes));}catch{fail(400,'INVALID_JSON','Некорректные данные формы.');}
+  let value;try{value=JSON.parse(new TextDecoder().decode(bytes));}catch{fail(400,'INVALID_JSON','Некорректные данные формы.');}
+  if(!value||typeof value!=='object'||Array.isArray(value))fail(400,'VALIDATION','Передайте данные формы в JSON-объекте.');
+  return value;
 }
 export function cleanText(value,min,max,label) {
   if(typeof value!=='string'||value.trim().length<min||value.trim().length>max||/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/.test(value))fail(400,'VALIDATION',`Проверьте поле «${label}».`);

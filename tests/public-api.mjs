@@ -23,6 +23,7 @@ try {
   for(const rating of [0,6,1.5,'5'])assert.throws(()=>validateReview(review({rating})));
   for(const photo of ['data:image/svg+xml;base64,YQ==','data:image/png;base64,YQ==','https://example.test/image.png'])assert.throws(()=>validateReview(review({photo})));
   assert.throws(()=>validateReview(review({text:'https://spam.test buy things'})));
+  for(const body of ['null','[]','42']){assert.equal((await request('/reviews',{method:'POST',body})).status,400);assert.equal((await request('/',{method:'POST',body})).status,400);}
   assert.equal((await request('/reviews')).status,200);
   assert.equal((await request('/reviews',{headers:{Origin:'https://evil.test'}})).status,403);
   assert.equal((await request('/reviews?cursor=wrong')).status,400);

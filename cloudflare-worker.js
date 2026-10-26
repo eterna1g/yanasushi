@@ -267,14 +267,14 @@ async function readJson(request, limit) {
   let size = 0;
   const chunks = [];
   for (; ; ) {
-    const { value, done } = await reader.read();
+    const { value: value2, done } = await reader.read();
     if (done) break;
-    size += value.byteLength;
+    size += value2.byteLength;
     if (size > limit) {
       await reader.cancel();
       fail(413, "TOO_LARGE", "\u0421\u043B\u0438\u0448\u043A\u043E\u043C \u0431\u043E\u043B\u044C\u0448\u043E\u0439 \u0437\u0430\u043F\u0440\u043E\u0441.");
     }
-    chunks.push(value);
+    chunks.push(value2);
   }
   const bytes = new Uint8Array(size);
   let offset = 0;
@@ -282,11 +282,14 @@ async function readJson(request, limit) {
     bytes.set(chunk, offset);
     offset += chunk.byteLength;
   }
+  let value;
   try {
-    return JSON.parse(new TextDecoder().decode(bytes));
+    value = JSON.parse(new TextDecoder().decode(bytes));
   } catch {
     fail(400, "INVALID_JSON", "\u041D\u0435\u043A\u043E\u0440\u0440\u0435\u043A\u0442\u043D\u044B\u0435 \u0434\u0430\u043D\u043D\u044B\u0435 \u0444\u043E\u0440\u043C\u044B.");
   }
+  if (!value || typeof value !== "object" || Array.isArray(value)) fail(400, "VALIDATION", "\u041F\u0435\u0440\u0435\u0434\u0430\u0439\u0442\u0435 \u0434\u0430\u043D\u043D\u044B\u0435 \u0444\u043E\u0440\u043C\u044B \u0432 JSON-\u043E\u0431\u044A\u0435\u043A\u0442\u0435.");
+  return value;
 }
 function cleanText(value, min, max, label) {
   if (typeof value !== "string" || value.trim().length < min || value.trim().length > max || /[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/.test(value)) fail(400, "VALIDATION", `\u041F\u0440\u043E\u0432\u0435\u0440\u044C\u0442\u0435 \u043F\u043E\u043B\u0435 \xAB${label}\xBB.`);

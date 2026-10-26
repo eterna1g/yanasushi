@@ -8,8 +8,9 @@ export function initReviews(initialLang) {
   const t=key=>I18N[lang][key]||I18N.ru[key]||key;
   function status(key,error=false){statusKey=key;statusError=error;$('#review-status').textContent=t(key);$('#review-status').dataset.error=String(error);}
   function buttons(){form.querySelector('[type=submit]').disabled=busy||photoBusy;$('#review-photo').disabled=busy||photoBusy;$('#review-remove-photo').disabled=busy||photoBusy;$('#reviews-more').disabled=loading;}
+  function countLabel(count){const plural=new Intl.PluralRules(lang==='uk'?'uk-UA':'ru-RU').select(count);const forms=lang==='uk'?{one:'відгук',few:'відгуки',many:'відгуків',other:'відгуків'}:{one:'отзыв',few:'отзыва',many:'отзывов',other:'отзывов'};return forms[plural];}
   function render() {
-    if(stats)$('#reviews-summary').textContent=stats.count?`★ ${Number(stats.average).toLocaleString(lang==='uk'?'uk-UA':'ru-RU')} / 5 · ${stats.count} ${t('reviewsCount')}`:t('reviewsNoRating');
+    if(stats)$('#reviews-summary').textContent=stats.count?`★ ${Number(stats.average).toLocaleString(lang==='uk'?'uk-UA':'ru-RU')} / 5 · ${stats.count} ${countLabel(stats.count)}`:t('reviewsNoRating');
     $('#reviews-list').innerHTML=items.map(r=>`<article class="review-card"><div class="review-card-head"><strong>${esc(r.name)}</strong><time datetime="${esc(r.createdAt)}">${esc(new Date(r.createdAt).toLocaleDateString(lang==='uk'?'uk-UA':'ru-RU',{day:'numeric',month:'long',year:'numeric'}))}</time></div><p class="review-score" aria-label="${r.rating} ${lang==='uk'?'з':'из'} 5">${'★'.repeat(r.rating)}<span aria-hidden="true">${'☆'.repeat(5-r.rating)}</span></p><p class="review-body">${esc(r.text)}</p>${r.hasPhoto?`<a class="review-image-link" href="${apiUrl(`/reviews/${r.id}/photo`)}" target="_blank" rel="noopener"><img src="${apiUrl(`/reviews/${r.id}/photo`)}" alt="${esc(t('reviewPhotoAlt'))}" loading="lazy" width="480" height="320"></a>`:''}</article>`).join('');
     $('#reviews-more').hidden=!cursor;
     if(!loading&&stats)$('#reviews-feed-status').textContent=items.length?'':t('reviewsEmpty');

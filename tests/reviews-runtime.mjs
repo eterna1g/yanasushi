@@ -25,11 +25,11 @@ try {
   assert.equal(await page.locator('#review-text').inputValue(),message);await expect(page.locator('#review-photo-preview')).toBeVisible();
   await page.unroute(api+'/reviews');await page.locator('#review-form [type=submit]').click();await expect(page.locator('#review-status')).toContainText('отзыв опубликован');
   await expect(page.locator('.review-card')).toHaveCount(1);assert.equal(await page.locator('.review-body').textContent(),message);assert.equal(await page.locator('.review-body img').count(),0);
-  await page.waitForFunction(()=>document.querySelector('.review-image-link img')?.naturalWidth>0);await expect(page.locator('#reviews-summary')).toContainText('4 / 5');
+  await page.waitForFunction(()=>document.querySelector('.review-image-link img')?.naturalWidth>0);await expect(page.locator('#reviews-summary')).toContainText('4 / 5');await expect(page.locator('#reviews-summary')).toContainText(/1 отзыв$/);
   await page.reload();await expect(page.locator('.review-card')).toHaveCount(1);
   await page.locator('[data-lang=uk]').click();await expect(page.locator('h1')).toHaveText('Смачно? Розкажіть.');
   await page.locator('#review-name').fill('Олена');await page.locator('#review-text').fill('Смачний сет, але доставку хотілося б трохи швидше.');await page.locator('[name=rating][value="3"]').check();
-  await page.locator('#review-form [type=submit]').click();await expect(page.locator('#review-status')).toContainText('опубліковано');await expect(page.locator('.review-card')).toHaveCount(2);await expect(page.locator('#reviews-summary')).toContainText('3,5');
+  await page.locator('#review-form [type=submit]').click();await expect(page.locator('#review-status')).toContainText('опубліковано');await expect(page.locator('.review-card')).toHaveCount(2);await expect(page.locator('#reviews-summary')).toContainText('3,5');await expect(page.locator('#reviews-summary')).toContainText(/2 відгуки$/);
   await page.locator('#review-name').fill('Олена');await page.locator('#review-text').fill('Третій відгук для перевірки ліміту надсилань.');await page.locator('[name=rating][value="2"]').check();await page.locator('#review-form [type=submit]').click();await expect(page.locator('#review-status')).toContainText('Забагато');assert.equal(await page.locator('#review-text').inputValue(),'Третій відгук для перевірки ліміту надсилань.');
   await page.setViewportSize({width:390,height:844});assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));await page.screenshot({path:tmpdir()+'/yanasushi-reviews-mobile.png',fullPage:true});
   const admin=await context.newPage();admin.on('dialog',d=>d.accept());admin.on('pageerror',e=>errors.push(e.message));await admin.goto(server.base+'admin.html');
