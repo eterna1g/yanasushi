@@ -15,10 +15,12 @@ const observer = 'IntersectionObserver' in window ? new IntersectionObserver(ent
     if (!entry.isIntersecting) continue;
     observer.unobserve(entry.target);
     if (!entry.target.isConnected) continue;
-    play(entry.target, [
-      { opacity: 0, transform: 'translateY(22px)' },
-      { opacity: 1, transform: 'translateY(0)' }
-    ], { duration: 600, delay: Number(entry.target.dataset.revealDelay || 0), easing: 'cubic-bezier(.2,.7,.2,1)' });
+    // Product buttons must keep their hit targets while a scrolled-in card
+    // appears. Moving the whole card can lose a click between down and up.
+    const frames=entry.target.classList.contains('card')
+      ? [{opacity:0},{opacity:1}]
+      : [{opacity:0,transform:'translateY(22px)'},{opacity:1,transform:'translateY(0)'}];
+    play(entry.target, frames, { duration: 600, delay: Number(entry.target.dataset.revealDelay || 0), easing: 'cubic-bezier(.2,.7,.2,1)' });
   }
 }, { threshold: .08 }) : null;
 export function revealContent(root = document) {

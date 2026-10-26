@@ -1,4 +1,4 @@
-import {chromium} from '@playwright/test';
+import {chromium,expect} from '@playwright/test';
 import assert from 'node:assert/strict';
 import {existsSync} from 'node:fs';
 import {tmpdir} from 'node:os';
@@ -14,7 +14,7 @@ try {
   await context.route('https://fonts.gstatic.com/**',r=>r.abort());
   await context.route('https://yellow-term-d7c1.zubashenkoserhii.workers.dev/**',r=>r.fulfill({status:503,body:'offline'}));
   const page=await context.newPage();page.setDefaultTimeout(10000);
-  const errors=[];page.on('pageerror',e=>errors.push(e.message));
+  const errors=[];page.on('pageerror',e=>{errors.push(e.message);console.error('Browser JavaScript error:',e.stack||e.message);});
   for(const [name,count] of Object.entries(pages)) {
     await page.goto(base+name);
     assert.equal(await page.locator('.card').count(),count,name);
@@ -26,15 +26,15 @@ try {
   }
   await page.goto(base+'sushi.html');
   await page.locator('[data-act=add]').first().click();
-  assert.equal(await page.locator('#cart-count').textContent(),'1');
+  await expect(page.locator('#cart-count')).toHaveText('1');
   await page.locator('.nav a[href="sets.html"]').click();
-  assert.equal(await page.locator('#cart-count').textContent(),'1');
+  await expect(page.locator('#cart-count')).toHaveText('1');
   await page.locator('[data-act=add]').first().click();
-  assert.equal(await page.locator('#cart-count').textContent(),'2');
+  await expect(page.locator('#cart-count')).toHaveText('2');
   await page.locator('[data-act=lang][data-lang=uk]').click();
   assert.equal(await page.locator('h1').textContent(),'Набори для компанії');
   await page.locator('.nav a[href="promo.html"]').click();
-  assert.equal(await page.locator('#cart-count').textContent(),'2');
+  await expect(page.locator('#cart-count')).toHaveText('2');
   assert.equal(await page.locator('html').getAttribute('lang'),'uk');
   await page.locator('[data-act=open-cart]').click();
   assert.equal(await page.locator('.line').count(),2);
