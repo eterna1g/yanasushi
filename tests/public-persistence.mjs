@@ -4,10 +4,11 @@ import {mkdtemp,readFile,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 const folder=await mkdtemp(join(tmpdir(),'yanasushi-public-persist-'));
-const options={scriptPath:'cloudflare-worker.js',modules:true,compatibilityDate:'2026-07-30',cf:false,durableObjects:{PUBLIC_DATA:{className:'PublicData',useSQLite:true}},durableObjectsPersist:folder};
+const options={scriptPath:'cloudflare-worker.js',modules:true,compatibilityDate:'2026-07-30',cf:false,durableObjects:{PUBLIC_DATA:{className:'PublicData',useSQLite:true}},durableObjectsPersist:folder,bindings:{TELEGRAM_BOT_TOKEN:'test-only',TELEGRAM_CHAT_ID:'test-only'},outboundService:()=>{throw new Error('Unexpected external request');}};
 let runtime=new Miniflare(options);
 const call=(path,body)=>runtime.dispatchFetch('https://worker.test'+path,{method:body?'POST':'GET',headers:{'CF-Connecting-IP':'192.0.2.30'},...(body?{body:JSON.stringify(body)}:{})});
 try {
+  const unavailable=await call('/',{order:{id:crypto.randomUUID()},website:''});assert.equal(unavailable.status,503);assert.equal((await unavailable.json()).code,'CATALOG_UNAVAILABLE','Never accept default prices when the configured catalog binding is missing');
   const bytes=await readFile('assets/banners/dragon.webp'),challenge=(await(await call('/challenge?purpose=review')).json()).token;
   await new Promise(resolve=>setTimeout(resolve,2100));
   const body={id:crypto.randomUUID(),name:'Гость',text:'Очень хороший сет и свежие роллы!',rating:5,photo:'data:image/webp;base64,'+bytes.toString('base64'),website:'',challenge};

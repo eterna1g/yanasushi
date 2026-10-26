@@ -88,7 +88,8 @@ export class PublicData {
       if(previous.status==='sent')return response(previous.result);
       if(previous.status!=='failed')fail(409,'ORDER_PENDING','Этот заказ уже обрабатывается. Не отправляйте его повторно.');
     }
-    const menu=validateCatalog((this.env.CATALOG?await this.env.CATALOG.get('menu','json'):null)??DEFAULT_MENU);
+    if(!this.env.CATALOG)fail(503,'CATALOG_UNAVAILABLE','Невозможно проверить цены. Приём заказов временно недоступен.');
+    const menu=validateCatalog((await this.env.CATALOG.get('menu','json'))??DEFAULT_MENU);
     const order=validateOrder(input,menu),number=previous?.number||`${new Date().toISOString().slice(0,10).replaceAll('-','')}-${crypto.randomUUID().slice(0,8).toUpperCase()}`;
     const message=orderMessage(order,number);
     if(message.length>4000)fail(400,'ORDER_TOO_LONG','Заказ слишком длинный. Сократите комментарий или количество разных блюд.');
