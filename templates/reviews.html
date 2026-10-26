@@ -26,7 +26,7 @@
       <div class="field"><label for="review-name" data-i18n="fName">Имя</label><input id="review-name" name="name" autocomplete="given-name" minlength="2" maxlength="80" required></div>
       <div class="field"><label for="review-text" data-i18n="reviewText">Как всё прошло?</label><textarea id="review-text" name="text" rows="5" minlength="10" maxlength="1500" required></textarea></div>
       <label class="spam-trap" aria-hidden="true">Website<input name="website" type="text" tabindex="-1" autocomplete="off"></label>
-      <div class="review-upload"><label class="btn btn-ghost" for="review-photo" data-i18n="reviewPhoto">＋ Прикрепить фото</label><input type="file" id="review-photo" accept="image/jpeg,image/png,image/webp" hidden><button type="button" id="review-remove-photo" class="link-btn" hidden data-i18n="reviewRemovePhoto">Убрать фото</button></div>
+      <div class="review-upload"><button type="button" class="btn btn-ghost" id="review-choose-photo" data-i18n="reviewPhoto">＋ Прикрепить фото</button><input type="file" id="review-photo" accept="image/jpeg,image/png,image/webp" hidden><button type="button" id="review-remove-photo" class="link-btn" hidden data-i18n="reviewRemovePhoto">Убрать фото</button></div>
       <p class="review-hint" data-i18n="reviewPhotoHint">Одно фото JPEG, PNG или WebP до 10 МБ. Мы уменьшим его для быстрой загрузки.</p>
       <img id="review-photo-preview" class="review-photo-preview" alt="Предпросмотр фото" hidden>
       <p class="review-hint" data-i18n="reviewConsent">Имя, отзыв и фото будут видны всем посетителям. Не добавляйте личные данные и рекламные ссылки.</p>

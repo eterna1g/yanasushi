@@ -7,7 +7,7 @@ export function initReviews(initialLang) {
   let lang=initialLang,items=[],cursor='',stats=null,photo='',photoBusy=false,busy=false,loading=false,id=crypto.randomUUID(),photoSequence=0,statusKey='',statusError=false;
   const t=key=>I18N[lang][key]||I18N.ru[key]||key;
   function status(key,error=false){statusKey=key;statusError=error;$('#review-status').textContent=t(key);$('#review-status').dataset.error=String(error);}
-  function buttons(){form.querySelector('[type=submit]').disabled=busy||photoBusy;$('#review-photo').disabled=busy||photoBusy;$('#review-remove-photo').disabled=busy||photoBusy;$('#reviews-more').disabled=loading;}
+  function buttons(){form.querySelector('[type=submit]').disabled=busy||photoBusy;$('#review-photo').disabled=busy||photoBusy;$('#review-choose-photo').disabled=busy||photoBusy;$('#review-remove-photo').disabled=busy||photoBusy;$('#reviews-more').disabled=loading;}
   function countLabel(count){const plural=new Intl.PluralRules(lang==='uk'?'uk-UA':'ru-RU').select(count);const forms=lang==='uk'?{one:'відгук',few:'відгуки',many:'відгуків',other:'відгуків'}:{one:'отзыв',few:'отзыва',many:'отзывов',other:'отзывов'};return forms[plural];}
   function render() {
     if(stats)$('#reviews-summary').textContent=stats.count?`★ ${Number(stats.average).toLocaleString(lang==='uk'?'uk-UA':'ru-RU')} / 5 · ${stats.count} ${countLabel(stats.count)}`:t('reviewsNoRating');
@@ -29,6 +29,7 @@ export function initReviews(initialLang) {
     finally{loading=false;buttons();}
   }
   $('#reviews-more').onclick=()=>load(true);
+  $('#review-choose-photo').onclick=()=>$('#review-photo').click();
   $('#review-photo').onchange=async event=>{
     const file=event.target.files[0];if(!file)return;const sequence=++photoSequence;photoBusy=true;buttons();
     try {

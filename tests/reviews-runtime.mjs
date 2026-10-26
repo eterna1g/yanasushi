@@ -18,7 +18,7 @@ try {
   await expect(page.locator('#reviews-feed-status')).toContainText('пока нет отзывов');
   await page.locator('[name=rating][value="4"]').check();await page.locator('#review-name').fill('Анна');
   const message='Очень вкусные роллы! <img src=x onerror=alert(1)> Приедем ещё.';
-  await page.locator('#review-text').fill(message);await page.locator('#review-photo').setInputFiles('assets/menu/salmon-roll.webp');
+  await page.locator('#review-text').fill(message);const [chooser]=await Promise.all([page.waitForEvent('filechooser'),page.locator('#review-choose-photo').press('Enter')]);await chooser.setFiles('assets/menu/salmon-roll.webp');
   await expect(page.locator('#review-status')).toContainText('Фото готово');
   await page.route(api+'/reviews',route=>route.request().method()==='POST'?route.fulfill({status:503,contentType:'application/json',body:'{"ok":false}'}):route.continue());
   await page.locator('#review-form [type=submit]').click();await expect(page.locator('#review-status')).toContainText('Не удалось');
