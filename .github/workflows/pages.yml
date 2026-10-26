@@ -29,8 +29,13 @@ jobs:
       - run: npm ci
       - run: npm run build
       - run: npm test
-      - name: Install Chromium
-        run: npx playwright install --with-deps chromium
+      - name: Prepare Chromium
+        run: |
+          if command -v google-chrome >/dev/null 2>&1; then
+            echo "PLAYWRIGHT_CHROMIUM_EXECUTABLE=$(command -v google-chrome)" >> "$GITHUB_ENV"
+          else
+            npx playwright install --with-deps chromium
+          fi
       - name: Browser and Worker integration checks
         run: npm run test:browser
       - run: npm run export
