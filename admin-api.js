@@ -19,6 +19,8 @@ export async function request(url,options={}) {
   try { result = await response.json(); }
   catch { throw new Error('Worker вернул не JSON. Проверьте адрес API и установленную версию Worker.'); }
   if (!response.ok) {
+    if(result.code==='NOT_FOUND')throw new Error(result.error||'Запись уже удалена.');
+    if(result.code==='NOT_CONFIGURED'&&url.includes('/reviews'))throw new Error('Обновите Worker и подключите Durable Object PUBLIC_DATA по инструкции REVIEWS_SECURITY_SETUP.md.');
     if ([404,405].includes(response.status)) throw new Error('На Worker установлена старая версия без нужного API. Обновите код Worker: маршруты /catalog и /slides должны поддерживать GET, PUT и Authorization.');
     if (response.status===401) throw new Error('Неверный ключ администратора. Проверьте ADMIN_TOKEN в секретах Worker.');
     throw new Error(result.error || `Ошибка Worker: HTTP ${response.status}. Данные остаются в черновике.`);

@@ -12,6 +12,9 @@ python3 -m http.server 8000
 
 ## Подключение Cloudflare
 
+**Для отзывов и защищённых заказов сначала выполните [REVIEWS_SECURITY_SETUP.md](REVIEWS_SECURITY_SETUP.md). Нужны PUBLIC_DATA и миграция класса PublicData; одного копирования кода недостаточно.**
+
+
 1. В Cloudflare Workers & Pages создайте KV namespace для меню.
 2. В настройках существующего Worker добавьте KV binding с именем `CATALOG` и выберите созданное хранилище.
 3. Добавьте секрет `ADMIN_TOKEN`: случайный ключ длиной от 24 символов. Не храните его в GitHub или HTML. Например, сгенерируйте локально: `openssl rand -hex 32`.
@@ -26,7 +29,7 @@ id = "ID_ВАШЕГО_NAMESPACE"
 
 Затем выполните `wrangler deploy`. Имя Worker в `wrangler.toml` — `yellow-term-d7c1`, URL сайта — `yellow-term-d7c1.zubashenkoserhii.workers.dev`. Перед деплоем используйте аккаунт Cloudflare, которому принадлежит этот Worker. При изменении URL обновите `ORDER_API_URL` в `site-settings.js`, затем выполните `npm run build`. Адрес также можно изменить в поле подключения панели на время сеанса.
 
-6. Загрузите на GitHub Pages все публичные файлы: `index.html`, `sushi.html`, `sets.html`, `promo.html`, `extras.html`, `contacts.html`, `styles.css`, `app.bundle.js`, `admin.html`, `admin.css`, `admin.bundle.js` и всю папку `assets/`. Не загружайте только `index.html`: страницы используют общие файлы.
+6. Загрузите на GitHub Pages все публичные файлы: `index.html`, `sushi.html`, `sets.html`, `promo.html`, `extras.html`, `contacts.html`, `reviews.html`, `styles.css`, `app.bundle.js`, `admin.html`, `admin.css`, `admin.bundle.js` и всю папку `assets/`. Не загружайте только `index.html`: страницы используют общие файлы.
 7. Откройте `/yanasushi/admin.html`, раскройте «Подключение к сайту», проверьте адрес Worker и введите ключ. Сначала загрузите текущее меню, затем редактируйте.
 
 ## Работа с меню
@@ -95,3 +98,7 @@ wrangler deploy --dry-run
 6. Введите ключ в «Подключение к сайту» и нажмите «Опубликовать слайды». Меню при этом не меняется. На открытой главной обновите страницу; Cloudflare KV может распространять изменения до минуты.
 
 Пустой слайдер или все скрытые слайды убирают блок с главной. Один видимый слайд показывается без автоматического переключения. Черновики меню и слайдов хранятся отдельно в IndexedDB; ключ администратора не сохраняется. При ошибке публикации черновик остаётся на устройстве.
+
+## Отзывы
+
+Откройте «Отзывы» в админке для просмотра и удаления отзыва вместе с фото. Для удаления нужен существующий ключ ADMIN_TOKEN. После удаления средняя оценка пересчитывается сервером. Публикация отзывов работает на странице reviews.html после установки PUBLIC_DATA. Подробности лимитов и защиты заказов: [REVIEWS_SECURITY_SETUP.md](REVIEWS_SECURITY_SETUP.md).

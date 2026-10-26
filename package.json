@@ -5,11 +5,13 @@
   "type": "module",
   "scripts": {
     "build": "node scripts/build.mjs",
-    "test": "node tests/catalog.mjs && node tests/pages.mjs && node tests/admin-api.mjs && node tests/slides.mjs",
+    "test": "node tests/catalog.mjs && node tests/pages.mjs && node tests/admin-api.mjs && node tests/slides.mjs && node tests/public-api.mjs && node tests/public-persistence.mjs",
     "start": "python3 -m http.server 8000",
-    "test:browser": "node tests/browser.mjs && node tests/carousel.mjs && node tests/admin-runtime.mjs && node tests/slides-runtime.mjs",
+    "test:browser": "node tests/browser.mjs && node tests/carousel.mjs && node tests/admin-runtime.mjs && node tests/slides-runtime.mjs && node tests/reviews-runtime.mjs",
     "export": "node scripts/export.mjs",
-    "test:admin": "node tests/admin-runtime.mjs"
+    "test:admin": "node tests/admin-runtime.mjs",
+    "deploy:worker": "node scripts/deploy-worker.mjs",
+    "check:api": "node scripts/check-api.mjs"
   },
   "devDependencies": {
     "@playwright/test": "1.64.1",

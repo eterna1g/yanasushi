@@ -7,7 +7,7 @@ const server = await testServer();
 const base = server.base;
 const executablePath = process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE || (existsSync('/usr/bin/chromium') ? '/usr/bin/chromium' : undefined);
 const browser=await chromium.launch({executablePath,args:['--no-sandbox']}).catch(async error => { await server.close(); throw error; });
-const pages={ 'index.html':4,'sushi.html':10,'sets.html':3,'promo.html':5,'extras.html':4,'contacts.html':0 };
+const pages={ 'index.html':4,'sushi.html':10,'sets.html':3,'promo.html':5,'extras.html':4,'contacts.html':0,'reviews.html':0 };
 try {
   const context=await browser.newContext({viewport:{width:1440,height:1000}});
   await context.route('https://fonts.googleapis.com/**',r=>r.abort());
@@ -72,5 +72,5 @@ try {
   assert.equal(await brokenPage.locator('.card').count(),10);
   assert(await brokenPage.locator('.card h3').first().isVisible());
   await brokenContext.close();
-  console.log('PASS: six pages under /yanasushi/, all photos, cart and language persist between pages, checkout, mobile, API unavailable, JavaScript disabled, JS bundle blocked; no page errors');
+  console.log('PASS: seven pages under /yanasushi/, all photos, cart and language persist between pages, checkout, mobile, API unavailable, JavaScript disabled, JS bundle blocked; no page errors');
 } finally {await browser.close();await server.close();}

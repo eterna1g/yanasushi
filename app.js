@@ -1,3 +1,5 @@
+import { initReviews } from './reviews.js';
+import { submissionGuard } from './submission-guard.js';
 import { DEFAULT_SLIDES, validateSlides } from './slides-config.js';
 import { initCarousel } from './carousel.js';
 import { contactBarHtml } from './contact-bar.js';
@@ -38,6 +40,8 @@ const byId = (id) => MENU.find((m) => m.id === id);
 // текст блюда на текущем языке (или общая строка, если она одинаковая)
 const L = (v) => (typeof v === 'string' ? v : v[lang]);
 
+const orderGuard=submissionGuard('order');
+let orderChallenge='',orderWebsite='',orderPriceChanged=false,orderBlocked=false;
 const STORE_KEY = 'yanasushi-cart-v1';
 let cart = loadCart();
 
@@ -98,6 +102,7 @@ function refreshChips() {
   });
 }
 
+let checkoutDraft=null;
 let view = 'cart';
 let lastOrder = null;
 const drawer = $('#drawer');
@@ -118,27 +123,29 @@ function renderCart() {
         <p class="demo-note" id="order-send-status" role="status">${esc(orderSendStatus)}</p>
       </div>`;
     foot.innerHTML = `
-      ${!orderSent && !sendingOrder ? `<button class="btn btn-primary btn-block" type="button" data-act="retry-send">${esc(t('retrySend'))}</button>` : ''}
+      ${orderPriceChanged ? `<button class="btn btn-primary btn-block" type="button" data-act="reprice">${esc(t('orderReprice'))}</button>` : ''}
+      ${!orderSent && !sendingOrder && !orderPriceChanged && !orderBlocked ? `<button class="btn btn-primary btn-block" type="button" data-act="retry-send">${esc(t('retrySend'))}</button>` : ''}
       <button class="btn btn-ghost btn-block" type="button" data-act="finish" ${sendingOrder ? 'disabled' : ''}>${esc(t('finishBtn'))}</button>`;
     return;
   }
 
   if (view === 'checkout' && ids.length) {
+    orderGuard.warm();
     title.textContent = t('checkoutTitle');
     body.innerHTML = `
       <button class="link-btn" type="button" data-act="back">${esc(t('back'))}</button>
       <form class="form" id="checkout-form">
         <div class="field">
           <label for="f-name">${esc(t('fName'))}</label>
-          <input type="text" id="f-name" name="name" required autocomplete="given-name" placeholder="${esc(t('fNamePh'))}">
+          <input type="text" id="f-name" name="name" required minlength="2" maxlength="80" autocomplete="given-name" placeholder="${esc(t('fNamePh'))}">
         </div>
         <div class="field">
           <label for="f-phone">${esc(t('fPhone'))}</label>
-          <input type="tel" id="f-phone" name="phone" required minlength="7" autocomplete="tel" placeholder="+380 00 000 00 00">
+          <input type="tel" id="f-phone" name="phone" required maxlength="25" minlength="7" autocomplete="tel" placeholder="+380 00 000 00 00">
         </div>
         <div class="field">
           <label for="f-address">${esc(t('fAddr'))}</label>
-          <input type="text" id="f-address" name="address" required autocomplete="street-address" placeholder="${esc(t('fAddrPh'))}">
+          <input type="text" id="f-address" name="address" required minlength="5" maxlength="300" autocomplete="street-address" placeholder="${esc(t('fAddrPh'))}">
         </div>
         <fieldset class="field">
           <legend>${esc(t('fPay'))}</legend>
@@ -147,14 +154,16 @@ function renderCart() {
         </fieldset>
         <div class="field">
           <label for="f-comment">${esc(t('fComment'))}</label>
-          <textarea id="f-comment" name="comment" placeholder="${esc(t('fCommentPh'))}"></textarea>
+          <textarea id="f-comment" name="comment" maxlength="1000" placeholder="${esc(t('fCommentPh'))}"></textarea>
         </div>
+        <label class="spam-trap" aria-hidden="true">Website<input name="website" type="text" tabindex="-1" autocomplete="off"></label>
       </form>`;
     foot.innerHTML = `
       <div class="sum-row"><span>${esc(t('sumItems'))}</span><span>${money(subtotal())}</span></div>
       <div class="sum-row"><span>${esc(t('sumDelivery'))}</span><span>${deliveryCost() ? money(deliveryCost()) : esc(t('free'))}</span></div>
       <div class="sum-row sum-total"><span>${esc(t('sumTotal'))}</span><span>${money(total())}</span></div>
       <button class="btn btn-primary btn-block" type="submit" form="checkout-form">${esc(t('confirmBtn'))}</button>`;
+    if(checkoutDraft)for(const key of ['name','phone','address','comment','pay'])if(checkoutDraft[key]!==undefined)$('#checkout-form').elements.namedItem(key).value=checkoutDraft[key];
     return;
   }
 
@@ -274,6 +283,7 @@ function setLang(next) {
   fillSettings();
   renderMenu();
   carousel?.update(MENU,lang,SLIDES);
+  reviews?.updateLanguage(lang);
   renderCart();
   refreshBadge();
 
@@ -285,32 +295,11 @@ function setLang(next) {
   }
 }
 
-function orderText(o) {
-  const lines = [
-    t('orderTitle', { num: o.num }),
-    `${t('fName')}: ${o.name}`,
-    `${t('fPhone')}: ${o.phone}`,
-    `${t('fAddr')}: ${o.address}`,
-    `${t('fPay')}: ${t(o.pay === 'card' ? 'payCard' : 'payCash')}`,
-  ];
-  if (o.comment) lines.push(`${t('oComment')}: ${o.comment}`);
-  lines.push('');
-  o.items.forEach((it) => {
-    const m = byId(it.id);
-    lines.push(`${L(m.name)} × ${it.qty} — ${money(m.price * it.qty)}`);
-  });
-  lines.push('');
-  lines.push(`${t('sumItems')}: ${money(o.subtotal)}`);
-  lines.push(`${t('sumDelivery')}: ${o.delivery ? money(o.delivery) : t('free')}`);
-  lines.push(`${t('sumTotal')}: ${money(o.total)}`);
-  return lines.join('\n');
-}
-
 // Автоматическая отправка заказа в Telegram через Cloudflare Worker.
 let orderSendStatus = 'Отправляем заказ в обработку…';
 let sendingOrder = false, orderSent = false;
 async function sendOrderAutomatically() {
-  if (!lastOrder || sendingOrder) return;
+  if (!lastOrder || sendingOrder || orderSent || orderBlocked || orderPriceChanged) return;
   if (!ORDER_API_URL || ORDER_API_URL.includes('YOUR-WORKER-NAME')) {
     orderSendStatus = 'Не настроен адрес Worker. Вставьте URL в ORDER_API_URL в файле сайта.';
     renderCart();
@@ -321,14 +310,23 @@ async function sendOrderAutomatically() {
   orderSendStatus = t('orderSending');
   renderCart();
   try {
+    if(!orderChallenge){orderChallenge=await orderGuard.token();orderGuard.reset();orderGuard.warm();}
     const response = await fetch(ORDER_API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ order, text: orderText(order), language: lang }),
+      body: JSON.stringify({ order, challenge:orderChallenge, website:orderWebsite, language: lang }),
       signal: AbortSignal.timeout(20000)
     });
     const result = await response.json().catch(() => ({}));
-    if (!response.ok || !result.ok) throw new Error(result.error || 'Ошибка отправки');
+    if (!response.ok || !result.ok) {
+      if(result.code==='PRICE_CHANGED'){orderPriceChanged=true;orderSendStatus=t('orderPriceChanged');}
+      else if(['ORDER_PENDING','ORDER_UNCERTAIN'].includes(result.code)){orderBlocked=true;orderSendStatus=t(result.code==='ORDER_PENDING'?'orderPending':'orderUncertain');}
+      else if(['CHALLENGE','FORM_TOO_FAST'].includes(result.code)){orderChallenge='';orderGuard.reset();orderGuard.warm();orderSendStatus=t('orderCheckRetry');}
+      else if(result.code==='ORDER_TOO_LONG')orderSendStatus=t('orderTooLong');
+      else orderSendStatus=t(response.status===429?'orderRateLimit':result.code==='VALIDATION'?'orderInvalid':'orderError');
+      return;
+    }
+    if(result.orderNumber)order.num=result.orderNumber;
     orderSent = true;
     for (const item of order.items) { const remaining=qtyOf(item.id)-item.qty; if(remaining>0)cart[item.id]=remaining;else delete cart[item.id]; }
     saveCart();refreshBadge();refreshChips();
@@ -344,7 +342,8 @@ async function sendOrderAutomatically() {
 // A failed send must not discard the customer's cart.
 function finishOrder() {
   if(sendingOrder)return;
-  lastOrder = null;orderSent=false;
+  if(orderSent)checkoutDraft=null;
+  lastOrder = null;orderSent=false;orderPriceChanged=false;orderBlocked=false;orderChallenge='';
   view = 'cart';
   refreshBadge();
   refreshChips();
@@ -365,11 +364,13 @@ document.addEventListener('click', (e) => {
     case 'close-cart': closeCart(); break;
     case 'to-menu': goToMenu(); break;
     case 'lang': setLang(el.dataset.lang); break;
+    case 'reprice': repriceCart(); break;
     case 'retry-send': sendOrderAutomatically(); break;
     case 'finish': finishOrder(); break;
     case 'checkout':
       view = 'checkout'; renderCart(); $('#drawer-title').focus(); break;
     case 'back':
+      if($('#checkout-form')){checkoutDraft=Object.fromEntries(new FormData($('#checkout-form')));delete checkoutDraft.website;}
       view = 'cart'; renderCart(); $('#drawer-title').focus(); break;
   }
 });
@@ -384,8 +385,11 @@ drawer.addEventListener('submit', (e) => {
   e.preventDefault();
   if(sendingOrder)return;
   const data = new FormData(e.target);
+  checkoutDraft=Object.fromEntries(data);delete checkoutDraft.website;
+  orderWebsite=String(data.get('website')||'');orderChallenge='';orderPriceChanged=false;orderBlocked=false;
   // Keep the snapshot and cart until the Worker confirms delivery.
   lastOrder = {
+    id:crypto.randomUUID(),
     num: Math.floor(1000 + Math.random() * 9000),
     name: String(data.get('name') || '').trim(),
     phone: String(data.get('phone') || '').trim(),
@@ -404,6 +408,7 @@ drawer.addEventListener('submit', (e) => {
   sendOrderAutomatically();
 });
 
+const reviews=initReviews(lang);
 const carousel = initCarousel(document.querySelector('[data-carousel]'));
 carousel?.update(MENU,lang,SLIDES);
 applyStaticText();
@@ -443,3 +448,14 @@ async function updateSlides() {
   } catch(error) { console.warn('Using bundled slides:',error.message); }
 }
 updateSlides();
+
+async function repriceCart() {
+  if(sendingOrder)return;
+  try {
+    const response=await fetch(`${ORDER_API_URL.replace(/\/$/,'')}/catalog`,{cache:'no-store',signal:AbortSignal.timeout(10000)});
+    if(!response.ok)throw new Error('Catalog unavailable');
+    const catalog=validateCatalog(await response.json());MENU=withCatalogPhotos(catalog);cart=loadCart();saveCart();
+    view='cart';lastOrder=null;orderPriceChanged=false;orderBlocked=false;orderChallenge='';
+    renderMenu();renderCart();refreshBadge();carousel?.update(MENU,lang,SLIDES);
+  }catch{orderSendStatus=t('orderError');renderCart();}
+}

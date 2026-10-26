@@ -21,15 +21,8 @@ assert.equal((await request('PUT',DEFAULT_MENU,env.ADMIN_TOKEN,{ALLOWED_ORIGIN:'
 const preflight=await request('OPTIONS');assert.equal(preflight.status,204);assert.match(preflight.headers.get('Access-Control-Allow-Headers'),/Authorization/);
 for (const image of ['https://example.org/a.jpg','data:image/webp;base64,YQ==']) validateCatalog([{...DEFAULT_MENU[0],image}]);
 console.log('Catalog: default, auth, persistence, deletion, validation, CORS and configuration checks PASS');
-const oldFetch = globalThis.fetch;
-let sent = 0;
-globalThis.fetch = async () => { sent++; return Response.json({ok:true}); };
-try {
-  const response = await worker.fetch(new Request('http://localhost/', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:'Тест заказа'})}),{TELEGRAM_BOT_TOKEN:'test-only',TELEGRAM_CHAT_ID:'test-only'});
-  assert.equal(response.status,200);assert.equal(sent,1);
-  assert.equal((await worker.fetch(new Request('http://localhost/',{method:'POST',body:'{}'}),{})).status,500);
-  console.log('Existing order route regression checks PASS; Telegram mocked');
-} finally { globalThis.fetch = oldFetch; }
+const unavailable=await worker.fetch(new Request('https://example.test/',{method:'POST',body:JSON.stringify({text:'Do not trust client text'})}),{TELEGRAM_BOT_TOKEN:'test-only',TELEGRAM_CHAT_ID:'test-only'});
+assert.equal(unavailable.status,503,'Fail closed when atomic anti-spam storage is unavailable');
 const {withCatalogPhotos,validImage} = await import('../catalog.js');
 const {existsSync} = await import('node:fs');
 assert.equal(DEFAULT_MENU.length,17);
@@ -50,7 +43,7 @@ for (const method of ['GET','PUT']) {
   assert(!(await response.text()).includes('private storage detail'));
 }
 const missing=await worker.fetch(new Request('https://example.com/health',{headers:{Origin:origin}}),{ALLOWED_ORIGIN:origin});
-assert.deepEqual(await missing.json(),{ok:true,apiVersion:1,catalogStorage:false,adminConfigured:false});
+assert.deepEqual(await missing.json(),{ok:true,apiVersion:2,publicData:false,catalogStorage:false,adminConfigured:false});
 console.log('Worker failure checks PASS: storage failures retain CORS, private errors hidden, health reports missing bindings');
 
 assert.equal((await worker.fetch(new Request('https://example.com/health'),{ALLOWED_ORIGIN:origin})).status,200,'Health can be opened directly in a browser');

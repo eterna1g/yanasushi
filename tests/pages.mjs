@@ -8,7 +8,8 @@ const categories = {
   'sets.html': item => item.cat === 'sets',
   'promo.html': item => item.oldPrice && ['rolls','sets'].includes(item.cat),
   'extras.html': item => item.cat === 'extra',
-  'contacts.html': () => false
+  'contacts.html': () => false,
+  'reviews.html': () => false
 };
 for (const [file,filter] of Object.entries(categories)) {
   const html = read(file);

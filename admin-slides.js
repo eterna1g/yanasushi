@@ -134,7 +134,8 @@ export function initSlideAdmin() {
   };
   document.querySelectorAll('[data-admin-tab]').forEach(button=>button.onclick=async()=>{
     const slideTab=button.dataset.adminTab==='slides';
-    $('#catalog-panel').hidden=slideTab;$('#slides-panel').hidden=!slideTab;
+    $('#catalog-panel').hidden=button.dataset.adminTab!=='catalog';$('#slides-panel').hidden=!slideTab;
+    const reviewsPanel=$('#reviews-panel');if(reviewsPanel)reviewsPanel.hidden=button.dataset.adminTab!=='reviews';
     document.querySelectorAll('[data-admin-tab]').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));
     if(slideTab){
       try{const next=await fetchCatalog($('#api').value);if(Array.isArray(next)){menu=next;products(f('productId').value);preview();}}catch{/* bundled product choices remain available */}

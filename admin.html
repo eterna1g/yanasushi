@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Управление сайтом · YANASUSHI</title><link rel="stylesheet" href="admin.css?v=0b3329003be9"></head>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Управление сайтом · YANASUSHI</title><link rel="stylesheet" href="admin.css?v=78904228d8ba"></head>
 <body>
 <header><a class="brand" href="index.html">YANA<span>SUSHI</span></a><span class="label">УПРАВЛЕНИЕ САЙТОМ</span><a href="index.html" target="_blank" rel="noopener">Открыть сайт ↗</a></header>
 <main>
-<nav class="admin-tabs" aria-label="Разделы управления"><button type="button" data-admin-tab="catalog" aria-pressed="true">🍣 Меню</button><button type="button" data-admin-tab="slides" aria-pressed="false">▣ Слайды</button></nav>
+<nav class="admin-tabs" aria-label="Разделы управления"><button type="button" data-admin-tab="catalog" aria-pressed="true">🍣 Меню</button><button type="button" data-admin-tab="slides" aria-pressed="false">▣ Слайды</button><button type="button" data-admin-tab="reviews" aria-pressed="false">★ Отзывы</button></nav>
 <details class="connection"><summary>Подключение к сайту</summary><div class="connection-fields"><label>Адрес API Worker<input id="api" type="url" required></label><label>Ключ администратора<input id="token" type="password" autocomplete="off" placeholder="Хранится только до закрытия страницы"></label><button id="load">Загрузить меню</button></div><p>Для публикации нужны KV-привязка CATALOG и секрет ADMIN_TOKEN в Cloudflare. Ключ не сохраняется в браузере. Черновики меню и слайдов автоматически сохраняются на этом устройстве. <a href="https://github.com/eterna1g/yanasushi/blob/main/cloudflare-worker.js" target="_blank" rel="noopener">Готовый код Worker</a></p></details>
 <section id="catalog-panel"><section class="intro"><div><p class="eyebrow">ВАША КУХНЯ, ВАШЕ МЕНЮ</p><h1>Всё вкусное — здесь.</h1><p>Добавляйте блюда, обновляйте фото и публикуйте меню для гостей.</p></div><button id="add" class="primary">＋ Добавить позицию</button></section>
 
@@ -37,4 +37,4 @@
 <button type="submit" class="primary full">Сохранить слайд в черновик</button></form></aside></div>
 <footer><p id="slides-status" role="status" aria-live="polite">Загрузка слайдов…</p><button id="publish-slides" class="primary">Опубликовать слайды</button></footer>
 </section>
-</main><script defer src="admin.bundle.js?v=90731e224234"></script></body></html>
+<section id="reviews-panel" hidden><div class="intro"><div><p class="eyebrow">ОБРАТНАЯ СВЯЗЬ</p><h1>Отзывы гостей.</h1><p>Просматривайте отзывы и удаляйте спам или личные данные.</p></div><button id="admin-reviews-load">Обновить отзывы</button></div><div id="admin-reviews-list"></div><button id="admin-reviews-more" hidden>Показать ещё</button><p id="admin-reviews-status" role="status" aria-live="polite"></p></section></main><script defer src="admin.bundle.js?v=e7ff92b430fe"></script></body></html>
