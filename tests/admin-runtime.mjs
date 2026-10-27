@@ -14,7 +14,7 @@ const sent=[];
 const storage=await mkdtemp(join(tmpdir(),'yanasushi-kv-test-'));
 const server=await testServer({apiUrl:()=>api});
 const origin=new URL(server.base).origin;
-const runtime=new Miniflare({scriptPath:'cloudflare-worker.js',modules:true,compatibilityDate:'2026-07-30',host:'127.0.0.1',port:0,cf:false,kvNamespaces:['CATALOG'],kvPersist:storage,bindings:{ADMIN_TOKEN:token,ALLOWED_ORIGIN:origin,TELEGRAM_BOT_TOKEN:'test-only',TELEGRAM_CHAT_ID:'test-only'},outboundService:async request=>{
+const runtime=new Miniflare({scriptPath:'cloudflare-worker.js',modules:true,compatibilityDate:'2026-07-30',host:'127.0.0.1',port:0,cf:false,durableObjects:{PUBLIC_DATA:{className:'PublicData',useSQLite:true}},kvNamespaces:['CATALOG'],kvPersist:storage,bindings:{ADMIN_TOKEN:token,ALLOWED_ORIGIN:origin,TELEGRAM_BOT_TOKEN:'test-only',TELEGRAM_CHAT_ID:'test-only'},outboundService:async request=>{
   assert.equal(request.url,'https://api.telegram.org/bottest-only/sendMessage');
   sent.push(await request.json());
   return Response.json({ok:mode==='success'},{status:mode==='success'?200:400});
@@ -25,7 +25,7 @@ try {
   api=(await runtime.ready).origin;
   const call=(path,options={})=>fetch(api+path,{...options,headers:{Origin:origin,...options.headers}});
   const health=await (await call('/health')).json();
-  assert.deepEqual(health,{ok:true,apiVersion:1,catalogStorage:true,adminConfigured:true});
+  assert.deepEqual(health,{ok:true,apiVersion:2,publicData:true,catalogStorage:true,adminConfigured:true});
   const preflight=await call('/catalog',{method:'OPTIONS',headers:{'Access-Control-Request-Method':'PUT','Access-Control-Request-Headers':'authorization,content-type'}});
   assert.equal(preflight.status,204);assert.equal(preflight.headers.get('access-control-allow-origin'),origin);
   assert.match(preflight.headers.get('access-control-allow-methods'),/PUT/);assert.match(preflight.headers.get('access-control-allow-headers'),/Authorization/);

@@ -25,8 +25,8 @@ const hash = async path => createHash('sha256').update(await read(path)).digest(
 const version = { app: await hash('app.bundle.js'), css: await hash('styles.css'), admin:await hash('admin.bundle.js'), adminCss:await hash('admin.css') };
 await writeFile(root+'admin.html',adminTemplate.replace(/src="admin\.bundle\.js(?:\?v=[^"]*)?"/,`src="admin.bundle.js?v=${version.admin}"`).replace(/href="admin\.css(?:\?v=[^"]*)?"/,`href="admin.css?v=${version.adminCss}"`));
 const layout = await read('templates/layout.html');
-const names = {home:'Главная',sushi:'Суши',sets:'Сеты',promo:'Акции',extras:'Дополнения',contacts:'Контакты'};
-const files = {home:'index.html',sushi:'sushi.html',sets:'sets.html',promo:'promo.html',extras:'extras.html',contacts:'contacts.html'};
+const names = {home:'Главная',sushi:'Суши',sets:'Сеты',promo:'Акции',extras:'Дополнения',contacts:'Контакты',reviews:'Отзывы'};
+const files = {home:'index.html',sushi:'sushi.html',sets:'sets.html',promo:'promo.html',extras:'extras.html',contacts:'contacts.html',reviews:'reviews.html'};
 function staticText(html) {
   const values = {time:'45–60 мин',hours:WORK_HOURS,phone:PHONE,fee:`${DELIVERY_FEE} ₴`,freeFrom:`${FREE_FROM} ₴`,orderHours:ORDER_HOURS};
   return html.replace(/(<([a-z][a-z0-9]*)\b[^>]*\bdata-i18n="([^"]+)"[^>]*>)[\s\S]*?(<\/\2>)/gi, (match,open,tag,key,close) => {
@@ -47,10 +47,10 @@ for (const [page,file] of Object.entries(files)) {
     }).join('');
     content = content.replace(`<div id="${id}"></div>`, `<div id="${id}">${html}</div>`);
   }
-  if (page !== 'home') content = content.replace('<h2 class="title"','<h1 class="title"').replace('</h2>','</h1>');
+  if (page !== 'home' && content.includes('<h2 class="title"')) content = content.replace('<h2 class="title"','<h1 class="title"').replace('</h2>','</h1>');
   let html = layout.replace('{{main}}',content).replace('{{contactBar}}',contactBarHtml()).replace('{{pageClass}}',page==='home'?'home-page':'').replace('{{title}}',`${names[page]} · YANASUSHI`);
   html = staticText(html).replace(`href="${file}" data-i18n=`, `href="${file}" aria-current="page" data-i18n=`);
   html = html.replace('href="styles.css"',`href="styles.css?v=${version.css}"`).replace('src="app.bundle.js"',`src="app.bundle.js?v=${version.app}"`);
   await writeFile(root + file,html);
 }
-console.log('Built 6 static pages with embedded product cards and classic JS bundles.');
+console.log('Built 7 static pages with embedded product cards and classic JS bundles.');

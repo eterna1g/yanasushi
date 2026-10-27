@@ -1,3 +1,4 @@
+import { initReviewAdmin } from './admin-reviews.js';
 import { initSlideAdmin } from './admin-slides.js';
 import { fetchCatalog, publishCatalog, catalogEndpoint } from './admin-api.js';
 import { draftStore } from './draft-store.js';
@@ -158,3 +159,5 @@ async function start() {
 start();
 
 initSlideAdmin();
+
+initReviewAdmin();

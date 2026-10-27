@@ -1,3 +1,5 @@
+> **Отзывы и защищённые заказы (API v2):** актуальная установка — [REVIEWS_SECURITY_SETUP.md](REVIEWS_SECURITY_SETUP.md). Для новой версии требуется Durable Object PUBLIC_DATA и миграция PublicData. Инструкция ниже относится к установке API каталога/слайдов.
+
 # Исправление публикации меню
 
 На действующем Worker обнаружена старая версия: `GET /catalog` возвращает 405, а OPTIONS разрешает только POST и Content-Type. Браузер не может отправить PUT с Authorization и показывает Failed to fetch. Сам ключ администратора на этом этапе ещё не проверяется.

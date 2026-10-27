@@ -1,3 +1,17 @@
 name = "yellow-term-d7c1"
 main = "worker.js"
 compatibility_date = "2026-10-21"
+keep_vars = true
+
+# Use npm run deploy:worker -- <existing CATALOG namespace ID> for deployment.
+# It preserves the CATALOG binding and Telegram/admin secrets, and creates a
+# temporary 30-minute compatibility window for the previous checkout.
+# Direct wrangler deploy also requires the existing CATALOG kv_namespaces entry.
+# Durable Object holds reviews, photo chunks, atomic spam limits and order receipts.
+[[durable_objects.bindings]]
+name = "PUBLIC_DATA"
+class_name = "PublicData"
+
+[[migrations]]
+tag = "public-data-v1"
+new_sqlite_classes = ["PublicData"]

@@ -210,7 +210,7 @@ export function validSlideImage(value) {
   try {const url=new URL(value);return url.protocol==='https:' && !url.username && !url.password && !/\s/.test(value);} catch {return false;}
 }
 export function validSlideHref(value) {
-  return typeof value==='string' && /^(index|sushi|sets|promo|extras|contacts)\.html(?:#[a-zA-Z0-9_-]+)?$/.test(value);
+  return typeof value==='string' && /^(index|sushi|sets|promo|extras|contacts|reviews)\.html(?:#[a-zA-Z0-9_-]+)?$/.test(value);
 }
 export function validateSlides(config) {
   if (!config || !Number.isInteger(config.intervalMs) || config.intervalMs<3000 || config.intervalMs>15000 || !Array.isArray(config.slides) || config.slides.length>20) throw new Error('Слайды: до 20 баннеров, интервал от 3 до 15 секунд.');

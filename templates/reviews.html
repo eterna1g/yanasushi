@@ -1,0 +1,38 @@
+<section class="reviews-header section">
+  <p class="eyebrow" data-i18n="reviewsEyebrow">ВАШИ ВПЕЧАТЛЕНИЯ</p>
+  <h1 class="title" data-i18n="reviewsTitle">Вкусно? Расскажите.</h1>
+  <p class="lead" data-i18n="reviewsIntro">Честные отзывы, любимые роллы и фото ваших вкусных вечеров.</p>
+  <div class="reviews-summary" id="reviews-summary" aria-live="polite"></div>
+</section>
+<div class="reviews-layout">
+  <section aria-labelledby="reviews-feed-title">
+    <h2 id="reviews-feed-title" data-i18n="reviewsFeed">Что говорят наши гости</h2>
+    <p id="reviews-feed-status" role="status" data-i18n="reviewsLoading">Загружаем отзывы…</p>
+    <div id="reviews-list" class="reviews-list"></div>
+    <button type="button" class="btn btn-ghost" id="reviews-more" hidden data-i18n="reviewsMore">Показать ещё</button>
+  </section>
+  <aside class="review-compose" aria-labelledby="review-form-title">
+    <h2 id="review-form-title" data-i18n="reviewWrite">Ваш отзыв</h2>
+    <form id="review-form" class="form" hidden>
+      <fieldset class="field review-rating"><legend data-i18n="reviewRating">Ваша оценка</legend>
+        <div class="review-stars">
+          <label><input type="radio" name="rating" value="1" required aria-label="1 из 5"><span aria-hidden="true">★</span></label>
+          <label><input type="radio" name="rating" value="2" aria-label="2 из 5"><span aria-hidden="true">★</span></label>
+          <label><input type="radio" name="rating" value="3" aria-label="3 из 5"><span aria-hidden="true">★</span></label>
+          <label><input type="radio" name="rating" value="4" aria-label="4 из 5"><span aria-hidden="true">★</span></label>
+          <label><input type="radio" name="rating" value="5" aria-label="5 из 5"><span aria-hidden="true">★</span></label>
+        </div>
+      </fieldset>
+      <div class="field"><label for="review-name" data-i18n="fName">Имя</label><input id="review-name" name="name" autocomplete="given-name" minlength="2" maxlength="80" required></div>
+      <div class="field"><label for="review-text" data-i18n="reviewText">Как всё прошло?</label><textarea id="review-text" name="text" rows="5" minlength="10" maxlength="1500" required></textarea></div>
+      <label class="spam-trap" aria-hidden="true">Website<input name="website" type="text" tabindex="-1" autocomplete="off"></label>
+      <div class="review-upload"><button type="button" class="btn btn-ghost" id="review-choose-photo" data-i18n="reviewPhoto">＋ Прикрепить фото</button><input type="file" id="review-photo" accept="image/jpeg,image/png,image/webp" hidden><button type="button" id="review-remove-photo" class="link-btn" hidden data-i18n="reviewRemovePhoto">Убрать фото</button></div>
+      <p class="review-hint" data-i18n="reviewPhotoHint">Одно фото JPEG, PNG или WebP до 10 МБ. Мы уменьшим его для быстрой загрузки.</p>
+      <img id="review-photo-preview" class="review-photo-preview" alt="Предпросмотр фото" hidden>
+      <p class="review-hint" data-i18n="reviewConsent">Имя, отзыв и фото будут видны всем посетителям. Не добавляйте личные данные и рекламные ссылки.</p>
+      <button type="submit" class="btn btn-primary btn-block" data-i18n="reviewPublish">Опубликовать отзыв</button>
+      <p id="review-status" role="status" aria-live="polite"></p>
+    </form>
+    <noscript><p>Для просмотра и отправки отзывов включите JavaScript.</p></noscript>
+  </aside>
+</div>
